@@ -20,6 +20,7 @@ use App\Models\TeacherAssignment;
 use App\Models\User;
 use App\Services\MatriculeGenerator;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -47,6 +48,14 @@ class DemoDataSeeder extends Seeder
             return;
         }
 
+        // Tout ou rien : un échec en cours de seed (par exemple une contrainte
+        // non respectée) ne laisse jamais de données partielles — le prochain
+        // démarrage repart d'une base vierge.
+        DB::transaction(fn () => $this->seedAll());
+    }
+
+    private function seedAll(): void
+    {
         mt_srand(20261014);
 
         $previousYear = AcademicYear::create([

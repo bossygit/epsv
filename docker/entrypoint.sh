@@ -45,8 +45,15 @@ if [ "${DB_CONNECTION:-mysql}" = "mysql" ] && [ -n "${DB_HOST:-}" ]; then
     done
 fi
 
-# 4. Migrations
-php artisan migrate --force --no-interaction
+# Migrations — EPSV_RESET_DB=true recrée tout le schéma (usage ponctuel :
+# incident de premier déploiement). À retirer ensuite pour ne pas effacer
+# les données à chaque redéploiement.
+if [ "${EPSV_RESET_DB:-false}" = "true" ]; then
+    echo "[entrypoint] EPSV_RESET_DB=true : recréation complète du schéma."
+    php artisan migrate:fresh --force --no-interaction
+else
+    php artisan migrate --force --no-interaction
+fi
 
 # Rôles, permissions et profil de l'école (idempotents)
 php artisan db:seed --class=RolePermissionSeeder --force --no-interaction
