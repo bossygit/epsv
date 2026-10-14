@@ -77,7 +77,9 @@ class DashboardController extends Controller
                     ->when(! $seesAll, fn ($qq) => $qq->whereIn('class_id', $classIds ?? []));
             })
             ->groupBy('student_id')
-            ->having('absence_count', '>=', $alertThreshold)
+            // havingRaw : portable MySQL/PostgreSQL (les alias ne sont pas
+            // utilisables dans un HAVING sous PostgreSQL).
+            ->havingRaw('count(*) >= ?', [$alertThreshold])
             ->orderByDesc('absence_count')
             ->with('student')
             ->limit(10)

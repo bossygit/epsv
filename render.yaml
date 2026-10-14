@@ -1,47 +1,34 @@
-# Blueprint Render — EPSV (École Panafricaine Séguynaud de Vinci)
+# Blueprint Render — EPSV, variante DÉMO GRATUITE
 #
-# Architecture :
-#   - epsv-app   : service web Docker (Laravel + nginx + php-fpm)
-#   - epsv-mysql : service privé MySQL 8 avec disque persistant (réseau privé)
+# Architecture (aucun frais, aucun moyen de paiement requis) :
+#   - epsv-app : service web Docker (Laravel + nginx + php-fpm), plan gratuit
+#   - epsv-db  : PostgreSQL managé Render, plan gratuit
 #
-# Déploiement : Render → New → Blueprint → sélectionner ce dépôt.
-# ⚠️ Render ne propose pas de MySQL managé : la base tourne dans un service
-#    privé avec disque persistant. Voir docs/deployment.md (sauvegardes).
+# ⚠️ Différences avec la production :
+#   - PostgreSQL au lieu de MySQL (l'application est compatible avec les deux ;
+#     le serveur de l'école utilisera MySQL comme prévu au cahier des charges).
+#   - Le plan gratuit Render met le service en veille après 15 min d'inactivité
+#     (premier chargement plus lent) et la base gratuite expire au bout de 30 jours.
+#   - Sans disque persistant, les PDF de bulletins archivés sont perdus à chaque
+#     redéploiement (ils restent régénérables depuis les notes).
+#
+# Pour la production : voir render.yaml (MySQL privé + disque persistant) — il
+# nécessite l'ajout d'un moyen de paiement au compte Render.
+
+databases:
+  - name: epsv-db
+    plan: free
+    databaseName: epsv
+    user: epsv
+    postgresMajorVersion: 17
 
 services:
-  # ---------------------------------------------------------------------------
-  # Base de données MySQL (service privé, non exposé sur Internet)
-  # ---------------------------------------------------------------------------
-  - type: pserv
-    name: epsv-mysql
-    runtime: docker
-    dockerfilePath: ./docker/mysql/Dockerfile
-    dockerContext: ./docker/mysql
-    plan: starter
-    autoDeploy: false
-    disk:
-      name: epsv-mysql-data
-      mountPath: /var/lib/mysql
-      sizeGB: 10
-    envVars:
-      - key: MYSQL_DATABASE
-        value: epsv
-      - key: MYSQL_USER
-        value: epsv
-      - key: MYSQL_PASSWORD
-        generateValue: true
-      - key: MYSQL_ROOT_PASSWORD
-        generateValue: true
-
-  # ---------------------------------------------------------------------------
-  # Application Laravel
-  # ---------------------------------------------------------------------------
   - type: web
     name: epsv-app
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     healthCheckPath: /up
     autoDeploy: true
     envVars:
@@ -57,8 +44,7 @@ services:
         value: fr
       - key: APP_TIMEZONE
         value: Africa/Brazzaville
-      # Générez une clé durable avec `php artisan key:generate --show` et
-      # remplacez cette valeur dans le tableau de bord Render.
+      # Générer une clé durable : php artisan key:generate --show
       - key: APP_KEY
         generateValue: true
       - key: LOG_CHANNEL
@@ -74,28 +60,28 @@ services:
       - key: QUEUE_CONNECTION
         value: database
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
       - key: DB_HOST
-        fromService:
-          type: pserv
-          name: epsv-mysql
+        fromDatabase:
+          name: epsv-db
           property: host
       - key: DB_PORT
-        fromService:
-          type: pserv
-          name: epsv-mysql
+        fromDatabase:
+          name: epsv-db
           property: port
       - key: DB_DATABASE
-        value: epsv
+        fromDatabase:
+          name: epsv-db
+          property: database
       - key: DB_USERNAME
-        value: epsv
+        fromDatabase:
+          name: epsv-db
+          property: user
       - key: DB_PASSWORD
-        fromService:
-          type: pserv
-          name: epsv-mysql
-          envVarKey: MYSQL_PASSWORD
-      # Données de démonstration au premier démarrage (mettre à false pour
-      # une école réelle, puis redéployer).
+        fromDatabase:
+          name: epsv-db
+          property: password
+      # Données de démonstration au premier démarrage
       - key: EPSV_SEED_DEMO
         value: "true"
       - key: EPSV_DEMO_PASSWORD

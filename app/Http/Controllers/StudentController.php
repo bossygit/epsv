@@ -27,11 +27,12 @@ class StudentController extends Controller
 
         $query = Student::query()
             ->when($request->filled('search'), function ($q) use ($request) {
-                $term = '%'.$request->string('search').'%';
+                // Recherche insensible à la casse, portable MySQL/PostgreSQL/SQLite.
+                $term = '%'.mb_strtolower(trim((string) $request->string('search'))).'%';
                 $q->where(fn ($qq) => $qq
-                    ->where('first_name', 'like', $term)
-                    ->orWhere('last_name', 'like', $term)
-                    ->orWhere('matricule', 'like', $term));
+                    ->whereRaw('lower(first_name) like ?', [$term])
+                    ->orWhereRaw('lower(last_name) like ?', [$term])
+                    ->orWhereRaw('lower(matricule) like ?', [$term]));
             })
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('class_id'), fn ($q) => $q->whereHas('enrollments', fn ($qq) => $qq->where('class_id', $request->integer('class_id'))))

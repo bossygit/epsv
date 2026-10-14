@@ -66,20 +66,30 @@ Tâches planifiées (rapports/alertes automatiques V2) :
 
 ## 4. Déploiement Render (cloud)
 
-Render n'offre pas de MySQL managé : le fichier `render.yaml` (Blueprint) définit
+Deux configurations sont fournies dans le dépôt :
 
-- **service web Docker** : l'application Laravel (Dockerfile multi-stage, PHP 8.4-FPM + Nginx, migrations au démarrage) ;
-- **service privé MySQL 8** : conteneur officiel `mysql:8` accessible uniquement sur le réseau privé, avec **disque persistant** monté sur `/var/lib/mysql` ;
-- les variables d'environnement (mot de passe MySQL généré par Render, `APP_KEY`, domaine).
+| Fichier | Architecture | Prérequis |
+| --- | --- | --- |
+| `render.yaml` | **Démo gratuite** : service web gratuit + PostgreSQL managé Render (plan gratuit) | Aucun frais |
+| `render-mysql-production.yaml` | **Production** : application Docker + MySQL 8 privé avec disque persistant 10 Go | Moyen de paiement Render (**≈ 16 $/mois** : 2 × service Starter + disque) |
 
-Déploiement :
+⚠️ Render n'offre **pas** de MySQL managé : en production, la base tourne dans un **service privé** accessibles uniquement sur le réseau privé, avec un **disque persistant** monté sur `/var/lib/mysql`. Ces deux éléments sont payants — c'est pourquoi la variante gratuite utilise PostgreSQL (l'application est compatible avec les deux SGBD ; le serveur de l'école utilisera MySQL comme prévu au cahier des charges).
+
+Limites de la variante gratuite :
+
+- Le service web gratuit s'endort après 15 minutes d'inactivité (premier chargement plus lent).
+- La base PostgreSQL gratuite **expire après 30 jours** (à convertir en payant pour conserver les données).
+- Sans disque persistant, les PDF de bulletins archivés sont régénérés après chaque redéploiement (les notes, elles, restent en base).
+
+### Étapes
+
+1. **Créer le Blueprint** : Render Dashboard → *New* → *Blueprint* → sélectionner le dépôt `bossygit/epsv` → Render lit `render.yaml` et crée les ressources.
+2. **Suivre le déploiement** avec la CLI :
 
 ```bash
-render login                 # ou export RENDER_API_KEY=...
-render blueprints validate   # valider render.yaml
-# Créer le Blueprint depuis le tableau de bord Render (New > Blueprint) en
-# connectant le dépôt GitHub — ou :
-render services list
+render login                 # authentification (une fois)
+render blueprints validate ./render.yaml
+render services              # lister app + base
 render deploys list <service-id>
 render logs --service <service-id> --tail
 ```
