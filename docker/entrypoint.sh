@@ -52,15 +52,11 @@ php artisan migrate --force --no-interaction
 php artisan db:seed --class=RolePermissionSeeder --force --no-interaction
 php artisan db:seed --class=SchoolProfileSeeder --force --no-interaction
 
-# Données de démonstration uniquement si la base est vide
+# Données de démonstration : le seeder est idempotent (il s'ignore si la base
+# contient déjà des données) et ne dépend d'aucun paquet de développement.
 if [ "${EPSV_SEED_DEMO:-false}" = "true" ]; then
-    STUDENTS=$(php artisan tinker --execute="echo App\Models\Student::count();" 2>/dev/null | tr -dc '0-9')
-    if [ -z "${STUDENTS}" ] || [ "${STUDENTS}" = "0" ]; then
-        echo "[entrypoint] Base vide : création des données de démonstration."
-        php artisan db:seed --class=DemoDataSeeder --force --no-interaction
-    else
-        echo "[entrypoint] Base déjà remplie (${STUDENTS} élèves) : pas de données de démonstration."
-    fi
+    echo "[entrypoint] Données de démonstration (ignorées si déjà présentes)."
+    php artisan db:seed --class=DemoDataSeeder --force --no-interaction
 fi
 
 # 5. Caches de production + lien de stockage

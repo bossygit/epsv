@@ -38,6 +38,15 @@ class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
+        // Idempotence : si des années scolaires existent déjà, les données de
+        // démonstration ont déjà été créées (ou la base est déjà utilisée) —
+        // on ne rejoue rien, ce qui rend le seed sûr au démarrage du conteneur.
+        if (AcademicYear::query()->exists()) {
+            $this->command?->warn('Données déjà présentes : seed de démonstration ignoré.');
+
+            return;
+        }
+
         mt_srand(20261014);
 
         $previousYear = AcademicYear::create([
@@ -242,7 +251,7 @@ class DemoDataSeeder extends Seeder
                 'name' => $name,
                 'capacity' => $capacity + 5,
                 'main_teacher_id' => $teachers[$teacherKey]->id,
-                'room' => 'Salle '.fake()->numberBetween(1, 12),
+                'room' => 'Salle '.mt_rand(1, 12),
                 'is_active' => true,
             ]));
         }
@@ -379,7 +388,7 @@ class DemoDataSeeder extends Seeder
                     'last_name' => $this->lastNames[array_rand($this->lastNames)],
                     'gender' => $gender,
                     'birth_date' => now()->subYears($ageBase)->subDays(mt_rand(0, 360))->toDateString(),
-                    'birth_place' => fake()->randomElement(['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Owando']),
+                    'birth_place' => ['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Owando'][mt_rand(0, 3)],
                     'nationality' => 'Congolaise',
                     'status' => Student::STATUS_ACTIVE,
                 ]);
@@ -390,7 +399,7 @@ class DemoDataSeeder extends Seeder
                     $guardian = Guardian::create([
                         'full_name' => ($g === 0 ? 'M./Mme ' : '').$this->lastNames[array_rand($this->lastNames)].' '.($gender === 'M' ? $this->firstNamesM[array_rand($this->firstNamesM)] : $this->firstNamesF[array_rand($this->firstNamesF)]),
                         'phone' => '+242 06 '.mt_rand(100, 999).' '.mt_rand(10, 99).' '.mt_rand(10, 99),
-                        'profession' => fake()->randomElement(['Commerçant(e)', 'Enseignant(e)', 'Infirmier(ère)', 'Fonctionnaire', 'Ménagère', 'Ingénieur(e)']),
+                        'profession' => ['Commerçant(e)', 'Enseignant(e)', 'Infirmier(ère)', 'Fonctionnaire', 'Ménagère', 'Ingénieur(e)'][mt_rand(0, 5)],
                     ]);
 
                     $student->guardians()->attach($guardian->id, [
