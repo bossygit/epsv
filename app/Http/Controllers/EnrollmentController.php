@@ -21,7 +21,7 @@ class EnrollmentController extends Controller
 
         $enrollments = Enrollment::query()
             ->when($year, fn ($q) => $q->where('academic_year_id', $year->id))
-            ->with(['student', 'schoolClass.gradeLevel'])
+            ->with(['student', 'schoolClass.gradeLevel', 'academicYear'])
             ->orderByDesc('enrolled_on')
             ->paginate(50)
             ->withQueryString();
