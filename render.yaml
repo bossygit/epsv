@@ -1,0 +1,104 @@
+# Blueprint Render — EPSV (École Panafricaine Séguynaud de Vinci)
+#
+# Architecture :
+#   - epsv-app   : service web Docker (Laravel + nginx + php-fpm)
+#   - epsv-mysql : service privé MySQL 8 avec disque persistant (réseau privé)
+#
+# Déploiement : Render → New → Blueprint → sélectionner ce dépôt.
+# ⚠️ Render ne propose pas de MySQL managé : la base tourne dans un service
+#    privé avec disque persistant. Voir docs/deployment.md (sauvegardes).
+
+services:
+  # ---------------------------------------------------------------------------
+  # Base de données MySQL (service privé, non exposé sur Internet)
+  # ---------------------------------------------------------------------------
+  - type: pserv
+    name: epsv-mysql
+    runtime: docker
+    dockerfilePath: ./docker/mysql/Dockerfile
+    dockerContext: ./docker/mysql
+    plan: starter
+    autoDeploy: false
+    disk:
+      name: epsv-mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+    envVars:
+      - key: MYSQL_DATABASE
+        value: epsv
+      - key: MYSQL_USER
+        value: epsv
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+
+  # ---------------------------------------------------------------------------
+  # Application Laravel
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: epsv-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: "EPSV - Gestion scolaire"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_LOCALE
+        value: fr
+      - key: APP_FALLBACK_LOCALE
+        value: fr
+      - key: APP_TIMEZONE
+        value: Africa/Brazzaville
+      # Générez une clé durable avec `php artisan key:generate --show` et
+      # remplacez cette valeur dans le tableau de bord Render.
+      - key: APP_KEY
+        generateValue: true
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: epsv-mysql
+          property: host
+      - key: DB_PORT
+        fromService:
+          type: pserv
+          name: epsv-mysql
+          property: port
+      - key: DB_DATABASE
+        value: epsv
+      - key: DB_USERNAME
+        value: epsv
+      - key: DB_PASSWORD
+        fromService:
+          type: pserv
+          name: epsv-mysql
+          envVarKey: MYSQL_PASSWORD
+      # Données de démonstration au premier démarrage (mettre à false pour
+      # une école réelle, puis redéployer).
+      - key: EPSV_SEED_DEMO
+        value: "true"
+      - key: EPSV_DEMO_PASSWORD
+        generateValue: true
+      - key: EPSV_ADMIN_EMAIL
+        value: direction@epsv.cg
