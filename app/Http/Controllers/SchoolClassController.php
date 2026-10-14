@@ -35,7 +35,14 @@ class SchoolClassController extends Controller
         $academicYears = AcademicYear::orderByDesc('start_date')->get();
         $levels = GradeLevel::with('cycle')->orderBy('sequence')->get();
 
-        return view('structure.classes.index', compact('classes', 'year', 'seesAll', 'academicYears', 'levels'));
+        // Enseignants proposés comme professeur titulaire d'une classe.
+        $teachers = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', [\App\Support\Roles::PROFESSEUR, \App\Support\Roles::DIRECTION]))
+            ->orderBy('name')
+            ->get();
+
+        return view('structure.classes.index', compact('classes', 'year', 'seesAll', 'academicYears', 'levels', 'teachers'));
     }
 
     public function store(Request $request)
