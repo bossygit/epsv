@@ -4,6 +4,8 @@ Application de gestion scolaire pour l'**École Panafricaine Séguynaud de Vinci
 
 > V1 : élèves, classes, présences, notes, calcul des moyennes, bulletins PDF et tableau de bord de la direction. Le mode hors ligne, l'IA et les notifications viendront en V2.
 
+**Démo en ligne** : https://epsv-app.onrender.com (données de démonstration — compte `direction@epsv.cg`, mot de passe défini par `EPSV_DEMO_PASSWORD`). Configuration : `render.yaml` ; voir [docs/deployment.md](docs/deployment.md).
+
 ## Stack
 
 | Élément | Choix |

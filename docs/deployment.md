@@ -81,6 +81,15 @@ Limites de la variante gratuite :
 - La base PostgreSQL gratuite **expire après 30 jours** (à convertir en payant pour conserver les données).
 - Sans disque persistant, les PDF de bulletins archivés sont régénérés après chaque redéploiement (les notes, elles, restent en base).
 
+### Variables d'environnement notables
+
+| Variable | Rôle |
+| --- | --- |
+| `EPSV_SEED_DEMO` | `true` crée les données de démonstration au démarrage. Le seeder est **idempotent** (il s'ignore si des années scolaires existent déjà). Passer à `false` pour une école réelle. |
+| `EPSV_RESET_DB` | ⚠️ **Usage ponctuel uniquement** : `true` exécute `migrate:fresh` au démarrage (recrée tout le schéma). À retirer immédiatement après usage — sinon **toutes les données sont effacées à chaque redéploiement**. |
+| `EPSV_DEMO_PASSWORD` | Mot de passe initial des comptes créés par les seeders. |
+| `APP_KEY` | Clé de chiffrement ; la définir durablement (`php artisan key:generate --show`). |
+
 ### Étapes
 
 1. **Créer le Blueprint** : Render Dashboard → *New* → *Blueprint* → sélectionner le dépôt `bossygit/epsv` → Render lit `render.yaml` et crée les ressources.
