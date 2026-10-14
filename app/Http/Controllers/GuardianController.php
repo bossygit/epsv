@@ -6,6 +6,7 @@ use App\Models\Guardian;
 use App\Models\Student;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class GuardianController extends Controller
@@ -42,10 +43,12 @@ class GuardianController extends Controller
         ]);
 
         if ($request->boolean('is_primary')) {
-            // Un seul responsable principal à la fois.
-            $student->guardians()
-                ->wherePivot('guardian_id', '!=', $guardian->id)
-                ->update(['is_primary' => false]);
+            // Un seul responsable principal à la fois : on met à jour la table
+            // pivot student_guardian (le drapeau n'existe pas sur guardians).
+            DB::table('student_guardian')
+                ->where('student_id', $student->id)
+                ->where('guardian_id', '!=', $guardian->id)
+                ->update(['is_primary' => false, 'updated_at' => now()]);
         }
 
         $this->audit->log('guardian.created', $student, [], ['guardian' => $guardian->full_name, 'relationship' => $data['relationship']]);
@@ -85,9 +88,11 @@ class GuardianController extends Controller
         ]);
 
         if ($request->boolean('is_primary')) {
-            $student->guardians()
-                ->wherePivot('guardian_id', '!=', $guardian->id)
-                ->update(['is_primary' => false]);
+            // Même règle qu'à la création : mise à jour de la table pivot.
+            DB::table('student_guardian')
+                ->where('student_id', $student->id)
+                ->where('guardian_id', '!=', $guardian->id)
+                ->update(['is_primary' => false, 'updated_at' => now()]);
         }
 
         $this->audit->log('guardian.updated', $student, [], ['guardian' => $guardian->full_name]);
