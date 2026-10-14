@@ -20,8 +20,13 @@ if [ -z "${APP_URL:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
     echo "[entrypoint] APP_URL=${APP_URL}"
 fi
 
-# 1. Configuration nginx (substitution du port uniquement)
-envsubst '${PORT}' < /etc/nginx/templates/laravel.conf.template > /etc/nginx/conf.d/laravel.conf
+# 1. Configuration nginx (substitution du port uniquement).
+#    La template EST la configuration complète : elle remplace /etc/nginx/nginx.conf.
+#    (La placer dans conf.d/ la rendrait imbriquée dans le bloc http → erreur.)
+envsubst '${PORT}' < /etc/nginx/templates/laravel.conf.template > /etc/nginx/nginx.conf
+
+# Contrôle de syntaxe avant démarrage (échec immédiat et lisible si la config est cassée)
+nginx -t -q || { echo "[entrypoint] Configuration nginx invalide — arrêt."; exit 1; }
 
 # 2. Clé d'application
 if [ -z "${APP_KEY:-}" ]; then
