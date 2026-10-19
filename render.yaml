@@ -88,3 +88,12 @@ services:
         generateValue: true
       - key: EPSV_ADMIN_EMAIL
         value: direction@epsv.cg
+      # Notifications Web Push : renseigner les clés dans le dashboard Render.
+      - key: WEBPUSH_ENABLED
+        value: "true"
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: "mailto:contact@epsv.cg"

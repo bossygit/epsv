@@ -4,12 +4,14 @@ use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\GradeEntryController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportCardController;
 use App\Http\Controllers\SchoolClassController;
 use App\Http\Controllers\SchoolPeriodController;
@@ -32,6 +34,29 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    /*
+    |----------------------------------------------------------------------
+    | Messagerie interne (tout le personnel actif)
+    |----------------------------------------------------------------------
+    */
+    Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('chat/unread', [ChatController::class, 'unread'])->name('chat.unread');
+    Route::post('chat/conversations', [ChatController::class, 'storeConversation'])->name('chat.conversations.store');
+    Route::patch('chat/conversations/{conversation}', [ChatController::class, 'updateConversation'])->name('chat.conversations.update');
+    Route::post('chat/conversations/{conversation}/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
+    Route::get('chat/conversations/{conversation}/messages', [ChatController::class, 'poll'])->name('chat.messages.poll');
+    Route::get('chat/messages/{message}/attachment', [ChatController::class, 'downloadAttachment'])->name('chat.attachment');
+    Route::delete('chat/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+
+    /*
+    |----------------------------------------------------------------------
+    | Notifications Web Push
+    |----------------------------------------------------------------------
+    */
+    Route::post('push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscriptions.store');
+    Route::patch('push/subscriptions/disable', [PushSubscriptionController::class, 'disable'])->name('push.subscriptions.disable');
+    Route::delete('push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.subscriptions.destroy');
 
     /*
     |----------------------------------------------------------------------

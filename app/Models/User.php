@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -63,6 +64,26 @@ class User extends Authenticatable
     public function attendanceSessions(): HasMany
     {
         return $this->hasMany(AttendanceSession::class, 'taken_by');
+    }
+
+    /** Conversations de la messagerie interne. */
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class)
+            ->withPivot('last_read_message_id')
+            ->withTimestamps();
+    }
+
+    /** Messages envoyés par cet utilisateur. */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    /** Abonnements Web Push de ses navigateurs. */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
     }
 
     /**
