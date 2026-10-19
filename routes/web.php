@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\EvaluationController;
@@ -32,6 +33,18 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    /*
+    |----------------------------------------------------------------------
+    | Messagerie interne (tout le personnel actif)
+    |----------------------------------------------------------------------
+    */
+    Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('chat/conversations', [ChatController::class, 'storeConversation'])->name('chat.conversations.store');
+    Route::post('chat/conversations/{conversation}/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
+    Route::get('chat/conversations/{conversation}/messages', [ChatController::class, 'poll'])->name('chat.messages.poll');
+    Route::get('chat/messages/{message}/attachment', [ChatController::class, 'downloadAttachment'])->name('chat.attachment');
+    Route::delete('chat/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
 
     /*
     |----------------------------------------------------------------------

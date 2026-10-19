@@ -1,6 +1,7 @@
 @php
     $profile = \App\Models\SchoolProfile::current();
     $user = auth()->user();
+    $chatUnread = \App\Models\Conversation::unreadTotalFor($user);
 @endphp
 
 <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
@@ -23,6 +24,21 @@
             <x-sidebar-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">
                 Tableau de bord
             </x-sidebar-link>
+        </div>
+
+        <div>
+            <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Communication</p>
+            <div class="space-y-1">
+                <x-sidebar-link
+                    :href="route('chat.index')"
+                    icon="chat"
+                    :active="request()->routeIs('chat.*')"
+                    :badge="$chatUnread"
+                    badge-id="chat-unread-badge"
+                >
+                    Messagerie
+                </x-sidebar-link>
+            </div>
         </div>
 
         @canany(['students.view', 'attendance.view', 'grades.view', 'report_cards.view'])

@@ -20,13 +20,13 @@ Sécurité et traçabilité (Permissions · Audit · Sauvegardes)
 
 | Dossier | Rôle |
 | --- | --- |
-| `app/Models` | 22 modèles Eloquent (élèves, classes, notes, présences…) |
+| `app/Models` | 24 modèles Eloquent (élèves, classes, notes, présences, messagerie…) |
 | `app/Http/Controllers` | Contrôleurs fins : validation, autorisation, orchestration |
 | `app/Http/Middleware` | `EnsureUserIsActive` (comptes désactivés) + middlewares Spatie |
 | `app/Services` | Logique métier : `AttendanceService`, `PeriodWorkflowService`, `AuditLogger`, `MatriculeGenerator` |
 | `app/Services/Grading` | Cœur métier des calculs : `GradeCalculator`, `GradingConfig`, `GradeEntryService`, `ReportCardService`, DTO `SubjectAverage`/`GeneralAverage` |
 | `app/Support/Roles.php` | Registre central rôles + permissions |
-| `database/migrations` | 24 migrations versionnées |
+| `database/migrations` | 28 migrations versionnées |
 | `database/seeders` | Rôles, profil école, données de démonstration réalistes |
 | `resources/views` | Vues Blade (français, mobile-first) |
 | `docs/` | Documentation du projet |
@@ -41,6 +41,7 @@ Sécurité et traçabilité (Permissions · Audit · Sauvegardes)
 6. **Audit systématique** : `AuditLogger` trace les actions sensibles (qui, quoi, avant/après, motif, IP).
 7. **Pas de multi-tenant** : `school_profile` unique et configurable ; le multi-écoles viendra plus tard avec des tests d'isolation.
 8. **Autorisations à deux niveaux** : permissions globales (Spatie) + contrôles d'affectation par ligne (un professeur ne voit que ses classes).
+9. **Messagerie sans infrastructure temps réel** : conversations et messages en base, rafraîchissement par interrogation périodique (4 s), pièces jointes sur le disque privé et accès réservé aux participants. Voir `docs/messagerie.md`.
 
 ## 4. Flux principaux
 
@@ -71,6 +72,7 @@ Direction → génère le bulletin (ReportCardService)
 - **Barre latérale** adaptée aux permissions : chaque entrée n'apparaît que si l'utilisateur a la permission correspondante.
 - **Mobile-first** : grille d'appel et saisie de notes utilisables sur téléphone (Alpine.js pour les interactions rapides, sans rechargement).
 - **Tableau de bord** : effectifs, taux de présence (30 jours), absences non justifiées, notes manquantes, alertes configurables (périodes à valider, saisies en retard, absences répétées).
+- **Messagerie** : canal général, groupes et conversations directes ; composition mobile-first, pièces jointes privées et badge de non-lus.
 
 ## 6. Performance
 
@@ -85,3 +87,4 @@ Direction → génère le bulletin (ReportCardService)
 - Pas de gestion financière (V2, rôle comptable préparé).
 - Réinitialisation de mot de passe : par la direction (pas de flux e-mail en V1).
 - Les comparaisons entre enseignants ne sont pas fournies : les indicateurs restent pédagogiques et contextuels.
+- Messagerie : 60 derniers messages affichés, pas de pagination, de recherche ni de WebSocket (rafraîchissement toutes les 4 s) ; voir `docs/messagerie.md`.

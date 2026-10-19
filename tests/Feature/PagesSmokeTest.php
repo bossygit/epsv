@@ -51,6 +51,7 @@ class PagesSmokeTest extends TestCase
 
         $routes = [
             route('dashboard'),
+            route('chat.index'),
             route('students.index'),
             route('students.show', $student),
             route('students.create'),
@@ -102,6 +103,7 @@ class PagesSmokeTest extends TestCase
         // en revanche il ne saisit pas de résultat à la place de la direction.
         $this->actingAs($teacher)->get(route('evaluations.index'))->assertOk();
         $this->actingAs($teacher)->get(route('evaluations.create'))->assertOk();
+        $this->actingAs($teacher)->get(route('chat.index'))->assertOk();
 
         // Le professeur ne peut pas gérer la structure ni les utilisateurs.
         $this->actingAs($teacher)->get(route('users.index'))->assertForbidden();
