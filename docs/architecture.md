@@ -72,7 +72,7 @@ Direction → génère le bulletin (ReportCardService)
 - **Barre latérale** adaptée aux permissions : chaque entrée n'apparaît que si l'utilisateur a la permission correspondante.
 - **Mobile-first** : grille d'appel et saisie de notes utilisables sur téléphone (Alpine.js pour les interactions rapides, sans rechargement).
 - **Tableau de bord** : effectifs, taux de présence (30 jours), absences non justifiées, notes manquantes, alertes configurables (périodes à valider, saisies en retard, absences répétées).
-- **Messagerie** : canal général, groupes et conversations directes ; composition mobile-first, pièces jointes privées et badge de non-lus.
+- **Messagerie** : canal général, groupes et conversations directes ; composition mobile-first, pièces jointes privées et badge de non-lus. Le créateur d'un groupe peut le renommer et en modifier les membres.
 
 ## 6. Performance
 

@@ -14,6 +14,40 @@ les élèves ni les parents (ces derniers n'ont pas de compte dans la V1).
 Un utilisateur ouvre la messagerie depuis **Communication → Messagerie**. Il est
 rattaché automatiquement au canal général à sa première ouverture.
 
+## Gestion des groupes
+
+Le **créateur** d'un groupe dispose du bouton **Gérer** dans l'en-tête de la
+conversation. Il peut :
+
+- renommer le groupe ;
+- voir tous les membres avec leur fonction (et la mention « Créateur » ou
+  « Désactivé ») ;
+- ajouter un membre en cochant son nom ;
+- retirer un membre en le décochant.
+
+Règles appliquées :
+
+- seul le créateur peut modifier le groupe (les autres membres voient la liste
+  des participants dans le sous-titre, en lecture seule) ;
+- le créateur ne peut pas se retirer lui-même : il reste toujours membre ;
+- un membre retiré perd immédiatement l'accès (404 sur la page, 403 sur les
+  routes de messages et de pièces jointes), mais ses messages restent dans le
+  fil ;
+- un membre ajouté ne voit pas comme non lus les messages antérieurs à son
+  arrivée.
+
+## Notifications
+
+La V1 n'envoie ni e-mail, ni SMS, ni notification push. Un message non lu se
+signale par :
+
+- le badge numérique sur **Messagerie** dans la barre latérale ;
+- le compteur par conversation dans la liste ;
+- la pastille du fil concerné.
+
+Le badge se met à jour sur la page Messagerie (interrogation toutes les 4 s) et
+au chargement des autres pages. Aucun son n'est joué.
+
 ## Fonctionnement
 
 - **Temps réel léger** : le fil actif interroge le serveur toutes les 4 secondes
@@ -56,8 +90,8 @@ peut exister entre deux personnes, quel que soit l'initiateur.
   plus anciens ».
 - Pas de modification de message, de recherche, de mentions `@`, d'indicateur
   de saisie ni d'accusés de lecture par message.
-- La composition d'un groupe est figée après création (pas d'ajout/retrait ni de
-  sortie de groupe).
+- La composition d'un groupe ne peut être modifiée que par son créateur ; les
+  autres membres ne peuvent pas quitter le groupe eux-mêmes.
 - Le badge de non-lus se met à jour sur la page Messagerie ; sur les autres
   pages, il reflète l'état au chargement de la page.
 - Pas de WebSocket : latence perçue de 0 à 4 secondes.

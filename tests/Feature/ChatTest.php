@@ -52,6 +52,20 @@ class ChatTest extends TestCase
         return Conversation::query()->where('type', Conversation::TYPE_DIRECT)->latest('id')->firstOrFail();
     }
 
+    /** @param  array<int, User>  $members */
+    private function groupConversation(User $creator, array $members, string $name = 'Groupe de test'): Conversation
+    {
+        $this->actingAs($creator)
+            ->post(route('chat.conversations.store'), [
+                'type' => Conversation::TYPE_GROUP,
+                'name' => $name,
+                'user_ids' => collect($members)->pluck('id')->all(),
+            ])
+            ->assertRedirect();
+
+        return Conversation::query()->where('type', Conversation::TYPE_GROUP)->latest('id')->firstOrFail();
+    }
+
     public function test_invite_redirige_vers_la_connexion(): void
     {
         $this->get(route('chat.index'))->assertRedirect('/login');
@@ -237,5 +251,120 @@ class ChatTest extends TestCase
         $this->actingAs($intruder)
             ->get(route('chat.attachment', $message))
             ->assertForbidden();
+    }
+
+    public function test_createur_renomme_le_groupe_et_ajoute_des_membres(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $secretariat = $this->user('secretariat@epsv.cg');
+        $group = $this->groupConversation($direction, [$teacher], 'Groupe Test 1');
+
+        $this->actingAs($direction)
+            ->patch(route('chat.conversations.update', $group), [
+                'name' => 'Groupe Test 1 — renommé',
+                'user_ids' => [$teacher->id, $secretariat->id],
+            ])
+            ->assertRedirect(route('chat.index', ['c' => $group->id]))
+            ->assertSessionHas('success', 'Groupe mis à jour.');
+
+        $group->refresh();
+
+        $this->assertSame('Groupe Test 1 — renommé', $group->name);
+        $this->assertTrue($group->hasParticipant($direction));
+        $this->assertTrue($group->hasParticipant($teacher));
+        $this->assertTrue($group->hasParticipant($secretariat));
+    }
+
+    public function test_createur_retire_un_membre_qui_perd_lacces(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $group = $this->groupConversation($direction, [$teacher]);
+
+        $this->actingAs($direction)
+            ->patch(route('chat.conversations.update', $group), [
+                'name' => $group->name,
+                'user_ids' => [],
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue($group->fresh()->hasParticipant($direction));
+        $this->assertFalse($group->fresh()->hasParticipant($teacher));
+
+        $this->actingAs($teacher)
+            ->get(route('chat.index', ['c' => $group->id]))
+            ->assertNotFound();
+
+        $this->actingAs($teacher)
+            ->getJson(route('chat.messages.poll', $group))
+            ->assertForbidden();
+    }
+
+    public function test_le_createur_ne_peut_pas_se_retirer_lui_meme(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $group = $this->groupConversation($direction, [$teacher]);
+
+        // Le créateur n'est pas coché : il doit malgré tout rester membre.
+        $this->actingAs($direction)
+            ->patch(route('chat.conversations.update', $group), [
+                'name' => $group->name,
+                'user_ids' => [$teacher->id],
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue($group->fresh()->hasParticipant($direction));
+    }
+
+    public function test_un_membre_du_groupe_ne_peut_pas_le_gerer(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $group = $this->groupConversation($direction, [$teacher]);
+
+        $this->actingAs($teacher)
+            ->patch(route('chat.conversations.update', $group), [
+                'name' => 'Renommé par un membre',
+                'user_ids' => [$teacher->id],
+            ])
+            ->assertForbidden();
+
+        $this->assertNotSame('Renommé par un membre', $group->fresh()->name);
+    }
+
+    public function test_une_conversation_directe_ne_se_modifie_pas_comme_un_groupe(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $conversation = $this->directConversation($direction, $teacher);
+
+        $this->actingAs($direction)
+            ->patch(route('chat.conversations.update', $conversation), [
+                'name' => 'Pas un groupe',
+                'user_ids' => [],
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_la_page_groupe_montre_les_membres_et_le_bouton_de_gestion_au_createur(): void
+    {
+        $direction = $this->direction();
+        $teacher = $this->teacher();
+        $group = $this->groupConversation($direction, [$teacher], 'Groupe Test 1');
+
+        $this->actingAs($direction)
+            ->get(route('chat.index', ['c' => $group->id]))
+            ->assertOk()
+            ->assertSee('Gérer')
+            ->assertSee('Groupe Test 1')
+            ->assertSee($teacher->name);
+
+        $this->actingAs($teacher)
+            ->get(route('chat.index', ['c' => $group->id]))
+            ->assertOk()
+            ->assertDontSee('Gérer')
+            ->assertSee($direction->name);
     }
 }

@@ -41,6 +41,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     */
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('chat/conversations', [ChatController::class, 'storeConversation'])->name('chat.conversations.store');
+    Route::patch('chat/conversations/{conversation}', [ChatController::class, 'updateConversation'])->name('chat.conversations.update');
     Route::post('chat/conversations/{conversation}/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
     Route::get('chat/conversations/{conversation}/messages', [ChatController::class, 'poll'])->name('chat.messages.poll');
     Route::get('chat/messages/{message}/attachment', [ChatController::class, 'downloadAttachment'])->name('chat.attachment');

@@ -64,12 +64,31 @@ class ChatController extends Controller
             fn (Conversation $conversation) => [$conversation->id => $conversation->unreadCountFor($user)]
         );
 
+        $canManageGroup = $selected
+            && $selected->type === Conversation::TYPE_GROUP
+            && (int) $selected->created_by === (int) $user->getKey();
+
+        // Membres potentiels : tous les comptes actifs + les membres actuels
+        // même désactivés, pour qu'ils restent visibles et gérables.
+        $groupCandidates = collect();
+
+        if ($canManageGroup) {
+            $memberIds = $selected->participants->pluck('id');
+
+            $groupCandidates = User::query()
+                ->where(fn ($query) => $query->where('is_active', true)->orWhereIn('id', $memberIds))
+                ->orderBy('name')
+                ->get(['id', 'name', 'job_title', 'is_active']);
+        }
+
         return view('chat.index', [
             'conversations' => $conversations,
             'selected' => $selected,
             'messages' => $messages,
             'unread' => $unread,
             'colleagues' => $this->colleagues($user),
+            'canManageGroup' => $canManageGroup,
+            'groupCandidates' => $groupCandidates,
         ]);
     }
 
@@ -138,6 +157,57 @@ class ChatController extends Controller
         }
 
         return redirect()->route('chat.index', ['c' => $conversation->id]);
+    }
+
+    /**
+     * Renomme un groupe et synchronise ses membres.
+     * Réservé au créateur : il ne peut pas se retirer lui-même.
+     */
+    public function updateConversation(Request $request, Conversation $conversation): RedirectResponse
+    {
+        $user = $request->user();
+
+        $this->authorizeParticipant($conversation, $user);
+
+        abort_unless($conversation->type === Conversation::TYPE_GROUP, 403);
+        abort_unless((int) $conversation->created_by === (int) $user->getKey(), 403);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:80'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', Rule::exists('users', 'id')],
+        ]);
+
+        // Le créateur reste toujours membre, même s'il n'est pas coché.
+        $selectedIds = collect($data['user_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->push((int) $user->getKey())
+            ->unique()
+            ->values();
+
+        $currentIds = $conversation->participants()->pluck('users.id');
+        $toAdd = $selectedIds->diff($currentIds);
+        $toRemove = $currentIds
+            ->diff($selectedIds)
+            ->reject(fn ($id) => (int) $id === (int) $conversation->created_by);
+
+        $latestMessageId = (int) $conversation->messages()->max('id');
+
+        foreach ($toAdd as $participantId) {
+            $conversation->participants()->attach($participantId, [
+                'last_read_message_id' => $latestMessageId,
+            ]);
+        }
+
+        if ($toRemove->isNotEmpty()) {
+            $conversation->participants()->detach($toRemove->all());
+        }
+
+        $conversation->update(['name' => $data['name']]);
+
+        return redirect()
+            ->route('chat.index', ['c' => $conversation->id])
+            ->with('success', 'Groupe mis à jour.');
     }
 
     /** Envoie un message (texte et/ou pièce jointe). */
