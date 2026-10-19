@@ -11,6 +11,7 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\GradeEntryController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportCardController;
 use App\Http\Controllers\SchoolClassController;
 use App\Http\Controllers\SchoolPeriodController;
@@ -46,6 +47,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('chat/conversations/{conversation}/messages', [ChatController::class, 'poll'])->name('chat.messages.poll');
     Route::get('chat/messages/{message}/attachment', [ChatController::class, 'downloadAttachment'])->name('chat.attachment');
     Route::delete('chat/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+
+    /*
+    |----------------------------------------------------------------------
+    | Notifications Web Push
+    |----------------------------------------------------------------------
+    */
+    Route::post('push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscriptions.store');
+    Route::delete('push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.subscriptions.destroy');
 
     /*
     |----------------------------------------------------------------------

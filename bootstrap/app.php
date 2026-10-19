@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
         // Render (et la plupart des plateformes cloud) termine TLS en amont :
         // on fait confiance aux en-têtes X-Forwarded-* pour détecter HTTPS.

@@ -2,7 +2,7 @@
 
 Application de gestion scolaire pour l'**École Panafricaine Séguynaud de Vinci (EPSV)** — Brazzaville, République du Congo.
 
-> V1 : élèves, classes, présences, notes, calcul des moyennes, bulletins PDF, tableau de bord de la direction et messagerie interne du personnel. Le mode hors ligne, l'IA et les notifications viendront en V2.
+> V1 : élèves, classes, présences, notes, calcul des moyennes, bulletins PDF, tableau de bord de la direction et messagerie interne du personnel. Le mode hors ligne et l'IA viendront en V2.
 
 **Démo en ligne** : https://epsv-app.onrender.com (données de démonstration — compte `direction@epsv.cg`, mot de passe défini par `EPSV_DEMO_PASSWORD`). Configuration : `render.yaml` ; voir [docs/deployment.md](docs/deployment.md).
 
@@ -81,6 +81,7 @@ php artisan test
 - [docs/implementation-plan.md](docs/implementation-plan.md) — plan de mise en œuvre.
 - [docs/deployment.md](docs/deployment.md) — déploiement et sauvegardes.
 - [docs/messagerie.md](docs/messagerie.md) — messagerie interne : périmètre, modèle et limites.
+- [docs/notifications-push.md](docs/notifications-push.md) — notifications Web Push : configuration VAPID et limites.
 
 ## Règles de travail du projet
 

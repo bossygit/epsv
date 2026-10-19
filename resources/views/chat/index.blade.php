@@ -32,7 +32,32 @@
     <x-page-header
         title="Messagerie"
         subtitle="Échanges internes entre les membres du personnel — canal général, groupes et conversations directes."
-    />
+    >
+        <x-slot name="actions">
+            <div x-data="pushNotifications($el)"
+                 data-public-key="{{ config('webpush.public_key') }}"
+                 data-enabled="{{ config('webpush.enabled') ? '1' : '0' }}"
+                 data-subscribe-url="{{ route('push.subscriptions.store') }}"
+                 data-unsubscribe-url="{{ route('push.subscriptions.destroy') }}"
+                 class="flex flex-col items-end gap-1">
+                <button type="button"
+                        x-show="enabled"
+                        @click="toggle"
+                        :disabled="busy || !supported"
+                        :class="subscribed
+                            ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                            : 'border-gray-300 bg-white text-gray-700'"
+                        class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    <span x-text="label()">Activer les notifications</span>
+                </button>
+
+                <p x-show="error" x-text="error" class="max-w-xs text-right text-[11px] text-rose-600"></p>
+            </div>
+        </x-slot>
+    </x-page-header>
 
     <div
         x-data="chatApp($el)"
@@ -350,6 +375,171 @@
 
     @push('scripts')
         <script>
+            window.pushNotifications = function (el) {
+                const dataset = el.dataset;
+
+                return {
+                    enabled: dataset.enabled === '1',
+                    publicKey: dataset.publicKey || '',
+                    subscribeUrl: dataset.subscribeUrl,
+                    unsubscribeUrl: dataset.unsubscribeUrl,
+                    supported: 'serviceWorker' in navigator
+                        && 'PushManager' in window
+                        && 'Notification' in window,
+                    permission: typeof Notification !== 'undefined' ? Notification.permission : 'default',
+                    subscribed: false,
+                    busy: false,
+                    error: '',
+
+                    async init() {
+                        if (!this.enabled || !this.supported) {
+                            return;
+                        }
+
+                        try {
+                            const registration = await navigator.serviceWorker.ready;
+                            this.subscribed = !!(await registration.pushManager.getSubscription());
+                        } catch (error) {
+                            // Le badge de non-lus reste disponible.
+                        }
+                    },
+
+                    label() {
+                        if (!this.supported) {
+                            return 'Notifications non prises en charge';
+                        }
+
+                        if (this.permission === 'denied') {
+                            return 'Notifications bloquées';
+                        }
+
+                        return this.subscribed ? 'Notifications activées' : 'Activer les notifications';
+                    },
+
+                    async toggle() {
+                        this.error = '';
+
+                        if (this.subscribed) {
+                            await this.disable();
+                        } else {
+                            await this.enable();
+                        }
+                    },
+
+                    async enable() {
+                        if (!this.enabled || !this.supported || this.busy) {
+                            return;
+                        }
+
+                        if (!this.publicKey) {
+                            this.error = 'Notifications non configurées sur ce serveur.';
+                            return;
+                        }
+
+                        if (Notification.permission === 'denied') {
+                            this.error = 'Autorisez les notifications dans les réglages du navigateur.';
+                            return;
+                        }
+
+                        this.busy = true;
+
+                        try {
+                            const permission = await Notification.requestPermission();
+                            this.permission = permission;
+
+                            if (permission !== 'granted') {
+                                this.error = 'Permission refusée.';
+                                return;
+                            }
+
+                            await navigator.serviceWorker.register('/sw.js');
+                            const registration = await navigator.serviceWorker.ready;
+
+                            let subscription = await registration.pushManager.getSubscription();
+
+                            if (!subscription) {
+                                subscription = await registration.pushManager.subscribe({
+                                    userVisibleOnly: true,
+                                    applicationServerKey: this.urlBase64ToUint8Array(this.publicKey),
+                                });
+                            }
+
+                            const response = await fetch(this.subscribeUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify({
+                                    ...subscription.toJSON(),
+                                    contentEncoding: 'aes128gcm',
+                                }),
+                            });
+
+                            if (!response.ok) {
+                                const data = await response.json().catch(() => ({}));
+                                throw new Error(data.message || 'Enregistrement de l\'abonnement impossible.');
+                            }
+
+                            this.subscribed = true;
+                        } catch (error) {
+                            this.error = error.message || 'Impossible d\'activer les notifications.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+
+                    async disable() {
+                        if (this.busy) {
+                            return;
+                        }
+
+                        this.busy = true;
+
+                        try {
+                            const registration = await navigator.serviceWorker.ready;
+                            const subscription = await registration.pushManager.getSubscription();
+
+                            if (subscription) {
+                                await fetch(this.unsubscribeUrl, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    },
+                                    body: JSON.stringify({ endpoint: subscription.endpoint }),
+                                });
+
+                                await subscription.unsubscribe();
+                            }
+
+                            this.subscribed = false;
+                        } catch (error) {
+                            this.error = 'Impossible de désactiver les notifications.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+
+                    urlBase64ToUint8Array(base64String) {
+                        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+                        const base64 = (base64String + padding)
+                            .replace(/-/g, '+')
+                            .replace(/_/g, '/');
+                        const rawData = window.atob(base64);
+                        const output = new Uint8Array(rawData.length);
+
+                        for (let i = 0; i < rawData.length; i++) {
+                            output[i] = rawData.charCodeAt(i);
+                        }
+
+                        return output;
+                    },
+                };
+            };
+
             window.chatApp = function (el) {
                 const dataset = el.dataset;
 

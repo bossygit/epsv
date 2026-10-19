@@ -38,12 +38,21 @@ Règles appliquées :
 
 ## Notifications
 
-La V1 n'envoie ni e-mail, ni SMS, ni notification push. Un message non lu se
-signale par :
+Deux mécanismes complémentaires :
 
-- le badge numérique sur **Messagerie** dans la barre latérale ;
-- le compteur par conversation dans la liste ;
-- la pastille du fil concerné.
+- **Badge de non-lus** (toujours actif) : badge numérique sur **Messagerie** dans
+  la barre latérale, compteur par conversation et pastille du fil concerné.
+- **Notifications Web Push** (optionnelles, sur consentement) : le membre peut
+  activer les notifications depuis le bouton en haut de la Messagerie. Il reçoit
+  alors une notification du navigateur pour les nouveaux messages des
+  conversations auxquelles il appartient, avec le nom de l'expéditeur et un
+  extrait. Un clic ouvre la conversation.
+
+Les notifications Push nécessitent HTTPS (ou localhost en développement), les
+clés VAPID configurées et l'autorisation du navigateur. Sur iPhone/iPad, il faut
+iOS 16.4 ou plus et ajouter EPSV à l'écran d'accueil. Voir
+[notifications-push.md](notifications-push.md) pour l'installation et les
+limites.
 
 Le badge se met à jour sur la page Messagerie (interrogation toutes les 4 s) et
 au chargement des autres pages. Aucun son n'est joué.
@@ -72,6 +81,9 @@ conversations          id, type (channel|group|direct), name, direct_key,
 conversation_user      conversation_id, user_id, last_read_message_id
 messages               id, conversation_id, user_id, body,
                        attachment_path/name/mime/size, deleted_at
+push_subscriptions     id, user_id, endpoint_hash, endpoint,
+                       public_key, auth_token, content_encoding,
+                       user_agent, last_used_at
 ```
 
 `direct_key` (`petit_id:grand_id`) garantit qu'une seule conversation directe
@@ -95,6 +107,9 @@ peut exister entre deux personnes, quel que soit l'initiateur.
 - Le badge de non-lus se met à jour sur la page Messagerie ; sur les autres
   pages, il reflète l'état au chargement de la page.
 - Pas de WebSocket : latence perçue de 0 à 4 secondes.
+- Les notifications Push ne remplacent pas le badge : si l'utilisateur refuse
+  l'autorisation ou ferme complètement le navigateur, le badge reste la source
+  de vérité à la reconnexion.
 
 ## Exploitation
 

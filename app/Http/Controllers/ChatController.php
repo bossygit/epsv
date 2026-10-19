@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\ChatPushNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -248,6 +249,12 @@ class ChatController extends Controller
         $conversation->markReadBy($user);
 
         $message->load('user:id,name,job_title');
+
+        // Envoi des notifications push après la réponse HTTP : l'expéditeur
+        // n'attend pas les appels aux services de push des navigateurs.
+        app()->terminating(function () use ($message) {
+            app(ChatPushNotifier::class)->notify($message);
+        });
 
         if ($request->expectsJson()) {
             return response()->json([

@@ -72,7 +72,7 @@ Direction → génère le bulletin (ReportCardService)
 - **Barre latérale** adaptée aux permissions : chaque entrée n'apparaît que si l'utilisateur a la permission correspondante.
 - **Mobile-first** : grille d'appel et saisie de notes utilisables sur téléphone (Alpine.js pour les interactions rapides, sans rechargement).
 - **Tableau de bord** : effectifs, taux de présence (30 jours), absences non justifiées, notes manquantes, alertes configurables (périodes à valider, saisies en retard, absences répétées).
-- **Messagerie** : canal général, groupes et conversations directes ; composition mobile-first, pièces jointes privées et badge de non-lus. Le créateur d'un groupe peut le renommer et en modifier les membres.
+- **Messagerie** : canal général, groupes et conversations directes ; composition mobile-first, pièces jointes privées, badge de non-lus et notifications Web Push optionnelles. Le créateur d'un groupe peut le renommer et en modifier les membres.
 
 ## 6. Performance
 
@@ -83,7 +83,7 @@ Direction → génère le bulletin (ReportCardService)
 ## 7. Limites connues de la V1
 
 - Pas de mode hors ligne (V2 : PWA + synchronisation contrôlée).
-- Pas de notifications e-mail/SMS/WhatsApp (V2).
+- Pas de notifications e-mail/SMS/WhatsApp (V2). Les notifications navigateur (Web Push) sont disponibles pour la messagerie, sur consentement.
 - Pas de gestion financière (V2, rôle comptable préparé).
 - Réinitialisation de mot de passe : par la direction (pas de flux e-mail en V1).
 - Les comparaisons entre enseignants ne sont pas fournies : les indicateurs restent pédagogiques et contextuels.

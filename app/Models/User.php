@@ -80,6 +80,12 @@ class User extends Authenticatable
         return $this->hasMany(Message::class);
     }
 
+    /** Abonnements Web Push de ses navigateurs. */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     /**
      * Identifiants des classes accessibles selon les affectations pour une année.
      *
