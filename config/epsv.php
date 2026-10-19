@@ -14,7 +14,7 @@ return [
     'seed_demo' => env('EPSV_SEED_DEMO', true),
 
     // Mot de passe initial des comptes créés par les seeders.
-    'demo_password' => env('EPSV_DEMO_PASSWORD', 'Epsv@2026'),
+    'demo_password' => env('EPSV_DEMO_PASSWORD') ?: 'Epsv@2026',
 
     // Compte direction créé par le seeder.
     'admin_email' => env('EPSV_ADMIN_EMAIL', 'direction@epsv.cg'),
