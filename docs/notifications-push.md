@@ -19,8 +19,11 @@ le badge de non-lus reste le mécanisme de secours.
 
 L'envoi se fait après la réponse HTTP (`app()->terminating`) : l'expéditeur
 n'attend pas les services de push. Les abonnements expirés (404/410) sont
-supprimés automatiquement. À la déconnexion, le navigateur supprime son
-abonnement pour ne pas laisser le compte précédent sur un poste partagé.
+supprimés automatiquement. À la déconnexion, l'abonnement est **désactivé**
+côté serveur mais conservé dans le navigateur ; à la connexion suivante, il est
+réattribué automatiquement au compte courant. Un poste partagé ne reçoit donc
+pas les messages du compte précédent, et l'utilisateur n'a pas à réaccorder
+l'autorisation à chaque connexion.
 
 ## Prérequis
 
@@ -65,8 +68,12 @@ continue de fonctionner normalement.
 ```
 push_subscriptions  id, user_id, endpoint_hash (unique), endpoint,
                     public_key, auth_token, content_encoding,
-                    user_agent, last_used_at
+                    user_agent, last_used_at, disabled_at
 ```
+
+`disabled_at` est renseigné à la déconnexion : l'abonnement reste dans le
+navigateur mais le serveur cesse les envois. La connexion suivante le réactive
+et le réattribue au compte courant.
 
 `endpoint_hash` (SHA-256 de l'endpoint) sert d'identifiant unique : si un autre
 utilisateur active les notifications sur le même navigateur, l'abonnement est
@@ -100,5 +107,13 @@ réattribué au nouveau compte au lieu d'être dupliqué.
 - **Aucune notification** : vérifier que le service worker est actif
   (`chrome://serviceworker-internals`), que le système n'est pas en mode Ne pas
   déranger, et que l'utilisateur a bien un abonnement dans `push_subscriptions`.
+- **Firefox sur macOS** : vérifier **Réglages Système → Notifications →
+  Firefox** (autoriser les bannières) et regarder dans le Centre de
+  notifications. Firefox y conserve les notifications même quand la bannière
+  est discrète.
+- **Après une déconnexion** : l'abonnement est désactivé puis réattribué
+  automatiquement à la connexion suivante. Si le navigateur avait été
+  désabonné par une ancienne version, cliquer une fois sur **Activer les
+  notifications**.
 - **Sur iPhone** : installer EPSV sur l'écran d'accueil avant d'activer.
 - **Tests** : `php artisan test --filter=PushSubscriptionTest`.

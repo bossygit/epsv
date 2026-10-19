@@ -129,6 +129,48 @@ class PushSubscriptionTest extends TestCase
             ->assertStatus(503);
     }
 
+    public function test_la_deconnexion_desactive_l_abonnement_sans_le_supprimer(): void
+    {
+        $direction = $this->user('direction@epsv.cg');
+
+        $subscription = PushSubscription::create([
+            'user_id' => $direction->id,
+            'endpoint_hash' => PushSubscription::hashEndpoint('https://push.example.com/direction'),
+            'endpoint' => 'https://push.example.com/direction',
+            'public_key' => 'p256dh',
+            'auth_token' => 'auth',
+        ]);
+
+        $this->actingAs($direction)
+            ->patchJson(route('push.subscriptions.disable'), ['endpoint' => $subscription->endpoint])
+            ->assertOk();
+
+        $subscription->refresh();
+
+        $this->assertNotNull($subscription->disabled_at);
+        $this->assertDatabaseHas('push_subscriptions', ['id' => $subscription->id]);
+    }
+
+    public function test_une_reconnexion_reactive_l_abonnement_desactive(): void
+    {
+        $direction = $this->user('direction@epsv.cg');
+
+        PushSubscription::create([
+            'user_id' => $direction->id,
+            'endpoint_hash' => PushSubscription::hashEndpoint($this->payload()['endpoint']),
+            'endpoint' => $this->payload()['endpoint'],
+            'public_key' => 'p256dh',
+            'auth_token' => 'auth',
+            'disabled_at' => now(),
+        ]);
+
+        $this->actingAs($direction)
+            ->postJson(route('push.subscriptions.store'), $this->payload())
+            ->assertCreated();
+
+        $this->assertNull(PushSubscription::firstOrFail()->disabled_at);
+    }
+
     public function test_l_abonnement_exige_un_endpoint_et_des_cles(): void
     {
         $this->actingAs($this->user('direction@epsv.cg'))

@@ -614,6 +614,11 @@
                     },
 
                     setUnreadBadge(total) {
+                        if (typeof window.epsvUpdateUnread === 'function') {
+                            window.epsvUpdateUnread(total);
+                            return;
+                        }
+
                         const badge = document.getElementById('chat-unread-badge');
                         if (!badge) {
                             return;

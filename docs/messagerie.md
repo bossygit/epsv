@@ -41,7 +41,9 @@ Règles appliquées :
 Deux mécanismes complémentaires :
 
 - **Badge de non-lus** (toujours actif) : badge numérique sur **Messagerie** dans
-  la barre latérale, compteur par conversation et pastille du fil concerné.
+  la barre latérale, compteur par conversation et pastille du fil concerné. Le
+  total est aussi affiché dans le titre de l'onglet, sur le favicon et, si le
+  navigateur le permet, sur l'icône de l'application (Badging API).
 - **Notifications Web Push** (optionnelles, sur consentement) : le membre peut
   activer les notifications depuis le bouton en haut de la Messagerie. Il reçoit
   alors une notification du navigateur pour les nouveaux messages des
@@ -54,8 +56,9 @@ iOS 16.4 ou plus et ajouter EPSV à l'écran d'accueil. Voir
 [notifications-push.md](notifications-push.md) pour l'installation et les
 limites.
 
-Le badge se met à jour sur la page Messagerie (interrogation toutes les 4 s) et
-au chargement des autres pages. Aucun son n'est joué.
+Le badge se met à jour toutes les 4 s sur la page Messagerie et toutes les 15 s
+sur les autres pages (titre, favicon et badge d'application compris). Aucun son
+n'est joué.
 
 ## Fonctionnement
 
@@ -104,9 +107,9 @@ peut exister entre deux personnes, quel que soit l'initiateur.
   de saisie ni d'accusés de lecture par message.
 - La composition d'un groupe ne peut être modifiée que par son créateur ; les
   autres membres ne peuvent pas quitter le groupe eux-mêmes.
-- Le badge de non-lus se met à jour sur la page Messagerie ; sur les autres
-  pages, il reflète l'état au chargement de la page.
-- Pas de WebSocket : latence perçue de 0 à 4 secondes.
+- Le badge de non-lus se met à jour sur la page Messagerie (4 s) et sur les
+  autres pages (15 s), y compris dans le titre de l'onglet et le favicon.
+- Pas de WebSocket : latence perçue de 0 à 4 secondes sur le fil actif.
 - Les notifications Push ne remplacent pas le badge : si l'utilisateur refuse
   l'autorisation ou ferme complètement le navigateur, le badge reste la source
   de vérité à la reconnexion.

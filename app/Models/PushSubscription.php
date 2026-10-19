@@ -20,12 +20,14 @@ class PushSubscription extends Model
         'content_encoding',
         'user_agent',
         'last_used_at',
+        'disabled_at',
     ];
 
     protected function casts(): array
     {
         return [
             'last_used_at' => 'datetime',
+            'disabled_at' => 'datetime',
         ];
     }
 

@@ -42,6 +42,7 @@ class ChatPushNotifier
 
         $subscriptions = PushSubscription::query()
             ->whereIn('user_id', $recipientIds)
+            ->whereNull('disabled_at')
             ->get();
 
         if ($subscriptions->isEmpty()) {

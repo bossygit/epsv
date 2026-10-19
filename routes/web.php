@@ -41,6 +41,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     |----------------------------------------------------------------------
     */
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('chat/unread', [ChatController::class, 'unread'])->name('chat.unread');
     Route::post('chat/conversations', [ChatController::class, 'storeConversation'])->name('chat.conversations.store');
     Route::patch('chat/conversations/{conversation}', [ChatController::class, 'updateConversation'])->name('chat.conversations.update');
     Route::post('chat/conversations/{conversation}/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
@@ -54,6 +55,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     |----------------------------------------------------------------------
     */
     Route::post('push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscriptions.store');
+    Route::patch('push/subscriptions/disable', [PushSubscriptionController::class, 'disable'])->name('push.subscriptions.disable');
     Route::delete('push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.subscriptions.destroy');
 
     /*

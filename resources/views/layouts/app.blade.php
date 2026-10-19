@@ -7,6 +7,8 @@
 
         <title>{{ isset($title) ? $title.' — ' : '' }}{{ config('app.name', 'EPSV') }}</title>
 
+        <link rel="icon" id="app-favicon" href="/favicon.ico" type="image/x-icon">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -14,7 +16,13 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="h-full bg-gray-100 font-sans antialiased" x-data="{ sidebarOpen: false }">
+    <body class="h-full bg-gray-100 font-sans antialiased"
+          x-data="{ sidebarOpen: false }"
+          data-authenticated="{{ auth()->check() ? '1' : '0' }}"
+          data-user-id="{{ auth()->id() }}"
+          data-unread-url="{{ auth()->check() ? route('chat.unread') : '' }}"
+          data-push-subscribe-url="{{ auth()->check() ? route('push.subscriptions.store') : '' }}"
+          data-push-disable-url="{{ auth()->check() ? route('push.subscriptions.disable') : '' }}">
         <!-- Voile mobile -->
         <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
              class="fixed inset-0 z-30 bg-gray-900/50 lg:hidden" x-cloak></div>

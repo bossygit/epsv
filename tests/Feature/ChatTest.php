@@ -205,6 +205,26 @@ class ChatTest extends TestCase
         $this->assertSame(0, Conversation::unreadTotalFor($recipient));
     }
 
+    public function test_le_total_de_non_lus_est_disponible_pour_le_badge_global(): void
+    {
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), ['body' => 'Premier']);
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), ['body' => 'Deuxième']);
+
+        $this->actingAs($recipient)
+            ->getJson(route('chat.unread'))
+            ->assertOk()
+            ->assertJson(['total' => 2]);
+    }
+
+    public function test_le_badge_global_exige_une_connexion(): void
+    {
+        $this->getJson(route('chat.unread'))->assertUnauthorized();
+    }
+
     public function test_seul_lauteur_peut_supprimer_son_message(): void
     {
         $sender = $this->teacher();

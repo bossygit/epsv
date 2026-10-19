@@ -93,6 +93,20 @@ class ChatController extends Controller
         ]);
     }
 
+    /**
+     * Total de non-lus pour le badge global (barre latérale, titre, favicon).
+     */
+    public function unread(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $this->joinGeneralChannel($user);
+
+        return response()->json([
+            'total' => Conversation::unreadTotalFor($user),
+        ]);
+    }
+
     /** Crée (ou retrouve) une conversation directe, ou un groupe. */
     public function storeConversation(Request $request): RedirectResponse
     {

@@ -41,6 +41,7 @@ class PushSubscriptionController extends Controller
                 'auth_token' => $data['keys']['auth'],
                 'content_encoding' => $data['contentEncoding'] ?? 'aes128gcm',
                 'user_agent' => mb_substr((string) $request->userAgent(), 0, 255),
+                'disabled_at' => null,
             ],
         );
 
@@ -57,6 +58,25 @@ class PushSubscriptionController extends Controller
             ->where('user_id', $request->user()->getKey())
             ->where('endpoint_hash', PushSubscription::hashEndpoint($data['endpoint']))
             ->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Désactive l'abonnement à la déconnexion : le navigateur conserve son
+     * abonnement Push, mais le serveur cesse d'envoyer jusqu'à la prochaine
+     * connexion (qui le réattribue au compte courant).
+     */
+    public function disable(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'endpoint' => ['required', 'string', 'max:2048'],
+        ]);
+
+        PushSubscription::query()
+            ->where('user_id', $request->user()->getKey())
+            ->where('endpoint_hash', PushSubscription::hashEndpoint($data['endpoint']))
+            ->update(['disabled_at' => now()]);
 
         return response()->json(['ok' => true]);
     }
