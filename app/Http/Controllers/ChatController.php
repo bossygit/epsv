@@ -25,6 +25,8 @@ class ChatController extends Controller
 
     private const MAX_ATTACHMENT_KB = 10240;
 
+    private const MAX_EDITED_DOCX_KB = 20480;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -330,6 +332,99 @@ class ChatController extends Controller
             $message->attachment_path,
             $message->attachment_name ?: 'piece-jointe'
         );
+    }
+
+    /** Ouvre un .docx de la conversation dans l'éditeur intégré. */
+    public function editDocument(Request $request, Message $message)
+    {
+        $this->authorizeParticipant($message->conversation, $request->user());
+
+        abort_unless(
+            $message->isEditableDocx() && Storage::disk('local')->exists($message->attachment_path),
+            404
+        );
+
+        return view('chat.document-edit', [
+            'message' => $message,
+            'conversation' => $message->conversation,
+        ]);
+    }
+
+    /** Enregistre une version modifiée et la renvoie dans la conversation. */
+    public function saveDocument(Request $request, Message $message)
+    {
+        $user = $request->user();
+
+        $this->authorizeParticipant($message->conversation, $user);
+
+        abort_unless(
+            $message->isEditableDocx() && Storage::disk('local')->exists($message->attachment_path),
+            404
+        );
+
+        $request->validate([
+            'document' => [
+                'required',
+                'file',
+                'max:'.self::MAX_EDITED_DOCX_KB,
+                'extensions:docx',
+            ],
+        ]);
+
+        $file = $request->file('document');
+
+        $this->assertValidDocx($file->getRealPath());
+
+        $conversation = $message->conversation;
+
+        $edited = $conversation->messages()->create([
+            'user_id' => $user->getKey(),
+            'body' => 'Document modifié : '.$message->attachment_name,
+            'attachment_path' => $file->store('chat/'.$conversation->getKey(), 'local'),
+            'attachment_name' => $message->attachment_name,
+            'attachment_mime' => $file->getMimeType(),
+            'attachment_size' => $file->getSize(),
+        ]);
+
+        $conversation->forceFill(['last_message_at' => now()])->save();
+        $conversation->markReadBy($user);
+
+        $edited->load('user:id,name,job_title');
+
+        app()->terminating(function () use ($edited) {
+            app(ChatPushNotifier::class)->notify($edited);
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'id' => $edited->id,
+                'redirect' => route('chat.index', ['c' => $conversation->id]),
+            ]);
+        }
+
+        return redirect()
+            ->route('chat.index', ['c' => $conversation->id])
+            ->with('success', 'Document modifié enregistré dans la conversation.');
+    }
+
+    /** Vérifie qu'un fichier est réellement un paquet DOCX (et non un ZIP quelconque). */
+    private function assertValidDocx(?string $path): void
+    {
+        $zip = new \ZipArchive;
+
+        $opened = $path !== null && $zip->open($path) === true;
+        $valid = $opened && $zip->locateName('word/document.xml') !== false;
+
+        if ($opened) {
+            $zip->close();
+        }
+
+        if (! $valid) {
+            throw ValidationException::withMessages([
+                'document' => 'Le fichier envoyé n’est pas un document Word .docx valide.',
+            ]);
+        }
     }
 
     /** Supprime son propre message (suppression logique). */

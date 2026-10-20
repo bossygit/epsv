@@ -66,6 +66,44 @@ class ChatTest extends TestCase
         return Conversation::query()->where('type', Conversation::TYPE_GROUP)->latest('id')->firstOrFail();
     }
 
+    /** Fabrique un paquet DOCX minimal mais valide pour les tests. */
+    private function docxUpload(string $name = 'document.docx'): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'epsv-docx-');
+
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::OVERWRITE);
+        $zip->addFromString('[Content_Types].xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>
+XML);
+        $zip->addFromString('_rels/.rels', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>
+XML);
+        $zip->addFromString('word/document.xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body><w:p><w:r><w:t>Document de test</w:t></w:r></w:p></w:body>
+</w:document>
+XML);
+        $zip->close();
+
+        return new UploadedFile(
+            $path,
+            $name,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            null,
+            true
+        );
+    }
+
     public function test_invite_redirige_vers_la_connexion(): void
     {
         $this->get(route('chat.index'))->assertRedirect('/login');
@@ -273,6 +311,127 @@ class ChatTest extends TestCase
         $this->actingAs($intruder)
             ->get(route('chat.attachment', $message))
             ->assertForbidden();
+    }
+
+    public function test_document_word_ouvrable_dans_editeur(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $intruder = $this->user('surveillant@epsv.cg');
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Voici le compte rendu',
+            'attachment' => $this->docxUpload('compte-rendu.docx'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->assertTrue($message->isEditableDocx());
+
+        $this->actingAs($recipient)
+            ->get(route('chat.documents.edit', $message))
+            ->assertOk()
+            ->assertSee('compte-rendu.docx')
+            ->assertSee('docx-editor-app');
+
+        $this->actingAs($intruder)
+            ->get(route('chat.documents.edit', $message))
+            ->assertForbidden();
+
+        $before = Message::count();
+
+        $this->actingAs($intruder)->post(
+            route('chat.documents.save', $message),
+            ['document' => $this->docxUpload('compte-rendu.docx')],
+            ['Accept' => 'application/json']
+        )->assertForbidden();
+
+        $this->assertSame($before, Message::count());
+    }
+
+    public function test_seuls_les_docx_ont_un_editeur(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Voici le bulletin',
+            'attachment' => UploadedFile::fake()->create('bulletin.pdf', 120, 'application/pdf'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->assertFalse($message->isEditableDocx());
+
+        $this->actingAs($recipient)
+            ->get(route('chat.documents.edit', $message))
+            ->assertNotFound();
+    }
+
+    public function test_enregistrement_dune_version_modifiee_dans_le_chat(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Version initiale',
+            'attachment' => $this->docxUpload('note.docx'),
+        ])->assertOk();
+
+        $original = Message::firstOrFail();
+        $before = Message::count();
+
+        $response = $this->actingAs($recipient)->post(
+            route('chat.documents.save', $original),
+            ['document' => $this->docxUpload('note.docx')],
+            ['Accept' => 'application/json']
+        );
+
+        $response->assertOk()->assertJsonPath('ok', true);
+
+        $this->assertSame($before + 1, Message::count());
+
+        $edited = Message::latest('id')->firstOrFail();
+
+        $this->assertSame($conversation->id, $edited->conversation_id);
+        $this->assertSame('note.docx', $edited->attachment_name);
+        $this->assertStringContainsString('Document modifié', $edited->body);
+        $this->assertTrue($edited->hasAttachment());
+        Storage::disk('local')->assertExists($edited->attachment_path);
+
+        // L'original reste disponible : on ajoute une version, on ne l'écrase pas.
+        $this->assertTrue(Storage::disk('local')->exists($original->attachment_path));
+    }
+
+    public function test_enregistrement_refuse_un_faux_docx(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Document',
+            'attachment' => $this->docxUpload('note.docx'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->actingAs($recipient)->post(
+            route('chat.documents.save', $message),
+            ['document' => UploadedFile::fake()->createWithContent('faux.docx', 'pas un zip')],
+            ['Accept' => 'application/json']
+        )->assertStatus(422)->assertJsonValidationErrors('document');
     }
 
     public function test_createur_renomme_le_groupe_et_ajoute_des_membres(): void
