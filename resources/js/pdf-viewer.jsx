@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/build/pdf.mjs';
-import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
 
-GlobalWorkerOptions.workerSrc = workerSrc;
+GlobalWorkerOptions.workerPort = new PdfWorker();
 
 function PdfPage({ pdf, pageNumber, scale }) {
     const wrapperRef = useRef(null);
