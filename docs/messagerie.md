@@ -74,9 +74,10 @@ n'est joué.
 - **Pièces jointes** : PDF, images (JPG/PNG/WebP), Word et Excel, 10 Mo maximum.
   Elles sont stockées sur le disque **privé** (`storage/app/private/chat/…`) et
   servies uniquement aux participants via une route authentifiée.
-- **Édition Word** : un fichier `.docx` affiche un bouton **Modifier** qui ouvre
-  l'éditeur intégré, sans quitter EPSV. L'enregistrement ajoute une nouvelle
-  version dans la conversation ; l'original n'est jamais écrasé.
+- **Édition Word et Excel** : un fichier `.docx` ou `.xlsx` affiche un bouton
+  **Modifier** qui ouvre l'éditeur intégré, sans quitter EPSV. L'enregistrement
+  ajoute une nouvelle version dans la conversation ; l'original n'est jamais
+  écrasé.
 - **Suppression** : chaque auteur peut supprimer ses propres messages
   (suppression logique ; l'historique de la base conserve la ligne).
 - **Pas d'audit des messages** : la messagerie est un espace d'échange interne,
@@ -105,27 +106,29 @@ peut exister entre deux personnes, quel que soit l'initiateur.
   révéler son existence) et **403** sur les API de messages et les pièces jointes.
 - Seul l'auteur peut supprimer son message (**403** sinon).
 
-## Édition des documents Word
+## Édition des documents Word et Excel
 
-- Seuls les fichiers **`.docx`** sont éditables. Les anciens `.doc`, les PDF et
-  les classeurs Excel restent en téléchargement.
+- Seuls les fichiers **`.docx`** et **`.xlsx`** sont éditables. Les anciens
+  `.doc`/`.xls`, les PDF, les images et les fichiers CSV restent en
+  téléchargement.
 - L'éditeur s'ouvre sur une page dédiée d'EPSV
   (`GET /chat/messages/{id}/document`) et charge le fichier par la route
   authentifiée de la pièce jointe. Aucun fichier n'est envoyé à un service
   externe.
-- **Enregistrer dans le chat** dépose le `.docx` modifié comme **nouveau
+- **Enregistrer dans le chat** dépose le document modifié comme **nouveau
   message** (« Document modifié : … »). L'original et les versions précédentes
   restent consultables ; deux personnes qui éditent en même temps produisent
   donc deux versions, sans écrasement silencieux.
 - Taille maximale du document enregistré : **20 Mo**. Un fichier chiffré ou un
-  faux `.docx` est refusé.
+  faux `.docx`/`.xlsx` est refusé.
 - Ce n'est pas de l'édition simultanée : une seule personne édite sa copie à la
-  fois. La mise en page est conservée par l'éditeur, mais les fonctionnalités
-  Word très avancées (macros, compléments, champs dynamiques) peuvent être
-  limitées.
-- L'éditeur est le composant open source `@docx-editor.dev/react`
-  (Apache 2.0), exécuté entièrement dans le navigateur ; aucun document n'est
-  envoyé à un tiers.
+  fois. La mise en page Word et les classeurs Excel courants sont repris par
+  l'éditeur ; les fonctionnalités très avancées (macros, compléments, champs
+  dynamiques, graphiques exotiques) peuvent être limitées.
+- Les éditeurs sont des composants open source exécutés entièrement dans le
+  navigateur : `@docx-editor.dev/react` (Apache 2.0) pour Word, et
+  `@fortune-sheet/react` + `@corbe30/fortune-excel` (MIT) pour Excel. Aucun
+  document n'est envoyé à un tiers.
 
 ## Limites connues de la V1
 

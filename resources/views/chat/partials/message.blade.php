@@ -44,7 +44,7 @@
                             Télécharger
                         </a>
 
-                        @if ($message->isEditableDocx())
+                        @if ($message->isEditableOffice())
                             <a href="{{ route('chat.documents.edit', $message) }}"
                                class="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100' }}">
                                 <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

@@ -43,11 +43,33 @@ class Message extends Model
         return filled($this->attachment_path);
     }
 
-    /** Un document Word récent, seul format ouvert dans l'éditeur intégré. */
+    /** Un document Word récent, ouvert dans l'éditeur intégré. */
     public function isEditableDocx(): bool
     {
-        return $this->hasAttachment()
-            && str_ends_with(strtolower($this->attachment_name ?? ''), '.docx');
+        return $this->editableOfficeType() === 'docx';
+    }
+
+    /** Un classeur Excel récent, ouvert dans l'éditeur intégré. */
+    public function isEditableXlsx(): bool
+    {
+        return $this->editableOfficeType() === 'xlsx';
+    }
+
+    public function isEditableOffice(): bool
+    {
+        return $this->editableOfficeType() !== null;
+    }
+
+    /** Extension du document bureautique éditable, ou null. */
+    public function editableOfficeType(): ?string
+    {
+        if (! $this->hasAttachment()) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($this->attachment_name ?? '', PATHINFO_EXTENSION));
+
+        return in_array($extension, ['docx', 'xlsx'], true) ? $extension : null;
     }
 
     /** Taille lisible (o, Ko, Mo) sans dépendance externe. */
