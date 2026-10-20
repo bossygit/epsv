@@ -43,6 +43,13 @@ class Message extends Model
         return filled($this->attachment_path);
     }
 
+    /** Un document Word récent, seul format ouvert dans l'éditeur intégré. */
+    public function isEditableDocx(): bool
+    {
+        return $this->hasAttachment()
+            && str_ends_with(strtolower($this->attachment_name ?? ''), '.docx');
+    }
+
     /** Taille lisible (o, Ko, Mo) sans dépendance externe. */
     public function attachmentSizeLabel(): ?string
     {
