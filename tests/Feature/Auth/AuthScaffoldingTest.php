@@ -32,7 +32,7 @@ class AuthScaffoldingTest extends TestCase
         $this->post('/login', [
             'email' => 'test.connexion@epsv.cg',
             'password' => 'password',
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('chat.index', absolute: false));
 
         $this->assertAuthenticatedAs($user);
 

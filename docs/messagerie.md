@@ -62,6 +62,9 @@ n'est joué.
 
 ## Fonctionnement
 
+- **Point d'entrée** : après connexion, l'utilisateur arrive directement sur le
+  canal général (**Toute l'école**). Le tableau de bord reste accessible depuis
+  la barre latérale.
 - **Temps réel léger** : le fil actif interroge le serveur toutes les 4 secondes
   (`GET /chat/conversations/{id}/messages?after_id=…`). Aucun serveur WebSocket
   à maintenir ; le coût est négligeable pour une équipe de taille scolaire.

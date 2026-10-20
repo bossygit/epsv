@@ -79,11 +79,13 @@ class ChatTest extends TestCase
         $this->assertNotNull($general, 'Le canal général doit être créé par migration.');
         $this->assertFalse($general->hasParticipant($user));
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->get(route('chat.index'))
             ->assertOk()
             ->assertSee('Messagerie')
             ->assertSee("Toute l'école");
+
+        $this->assertSame($general->id, $response->viewData('selected')?->id);
 
         $this->assertTrue($general->fresh()->hasParticipant($user));
     }

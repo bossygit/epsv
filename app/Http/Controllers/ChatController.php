@@ -39,12 +39,16 @@ class ChatController extends Controller
             ->values();
 
         $selected = null;
+        $generalId = Conversation::general()?->id;
 
         if (! $request->boolean('list') && $request->filled('c')) {
             $selected = $conversations->firstWhere('id', (int) $request->input('c'));
             abort_unless($selected, 404);
         } elseif (! $request->boolean('list')) {
-            $selected = $conversations->first();
+            // Par défaut, on ouvre le canal général plutôt que la conversation
+            // la plus récente : c'est le point d'entrée naturel de la messagerie.
+            $selected = $generalId ? $conversations->firstWhere('id', $generalId) : null;
+            $selected ??= $conversations->first();
         }
 
         $messages = collect();
