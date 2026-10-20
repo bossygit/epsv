@@ -411,6 +411,61 @@ XML);
             ->assertNotFound();
     }
 
+    public function test_pdf_ouvrable_dans_visionneuse(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $intruder = $this->user('surveillant@epsv.cg');
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Voici le bulletin',
+            'attachment' => UploadedFile::fake()->create('bulletin.pdf', 120, 'application/pdf'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->assertTrue($message->isPdf());
+
+        $this->actingAs($recipient)
+            ->get(route('chat.pdf', $message))
+            ->assertOk()
+            ->assertSee('bulletin.pdf')
+            ->assertSee('pdf-viewer-app');
+
+        $this->actingAs($recipient)
+            ->get(route('chat.index', ['c' => $conversation->id]))
+            ->assertOk()
+            ->assertSee('Voir')
+            ->assertSee(route('chat.pdf', $message), false);
+
+        $this->actingAs($intruder)
+            ->get(route('chat.pdf', $message))
+            ->assertForbidden();
+    }
+
+    public function test_visionneuse_pdf_refuse_un_document_word(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Compte rendu',
+            'attachment' => $this->docxUpload('note.docx'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->actingAs($recipient)
+            ->get(route('chat.pdf', $message))
+            ->assertNotFound();
+    }
+
     public function test_enregistrement_dune_version_modifiee_dans_le_chat(): void
     {
         Storage::fake('local');

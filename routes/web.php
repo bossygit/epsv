@@ -47,6 +47,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('chat/conversations/{conversation}/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
     Route::get('chat/conversations/{conversation}/messages', [ChatController::class, 'poll'])->name('chat.messages.poll');
     Route::get('chat/messages/{message}/attachment', [ChatController::class, 'downloadAttachment'])->name('chat.attachment');
+    Route::get('chat/messages/{message}/pdf', [ChatController::class, 'viewPdf'])->name('chat.pdf');
     Route::get('chat/messages/{message}/document', [ChatController::class, 'editDocument'])->name('chat.documents.edit');
     Route::post('chat/messages/{message}/document', [ChatController::class, 'saveDocument'])->name('chat.documents.save');
     Route::delete('chat/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
