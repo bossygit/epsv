@@ -23,26 +23,37 @@
                 @endif
 
                 @if ($message->hasAttachment())
-                    <a href="{{ route('chat.attachment', $message) }}"
-                       class="mt-1 inline-flex max-w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100' }}">
+                    <div class="mt-1 flex max-w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/10 text-white' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200' }}">
                         <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                         </svg>
-                        <span class="truncate">{{ $message->attachment_name }}</span>
+                        <span class="min-w-0 truncate">{{ $message->attachment_name }}</span>
                         @if ($message->attachmentSizeLabel())
                             <span class="shrink-0 opacity-70">{{ $message->attachmentSizeLabel() }}</span>
                         @endif
-                    </a>
+                    </div>
 
-                    @if ($message->isEditableDocx())
-                        <a href="{{ route('chat.documents.edit', $message) }}"
-                           class="mt-1 inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100' }}">
+                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                        <a href="{{ route('chat.attachment', $message) }}"
+                           download="{{ $message->attachment_name }}"
+                           title="Télécharger {{ $message->attachment_name }}"
+                           class="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100' }}">
                             <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
-                            Modifier
+                            Télécharger
                         </a>
-                    @endif
+
+                        @if ($message->isEditableDocx())
+                            <a href="{{ route('chat.documents.edit', $message) }}"
+                               class="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium {{ $mine ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100' }}">
+                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                </svg>
+                                Modifier
+                            </a>
+                        @endif
+                    </div>
                 @endif
             @endif
         </div>

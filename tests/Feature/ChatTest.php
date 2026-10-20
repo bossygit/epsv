@@ -308,6 +308,13 @@ XML);
             ->assertOk()
             ->assertHeader('content-disposition');
 
+        $this->actingAs($recipient)
+            ->get(route('chat.index', ['c' => $conversation->id]))
+            ->assertOk()
+            ->assertSee('Télécharger')
+            ->assertSee('download="bulletin.pdf"', false)
+            ->assertSee(route('chat.attachment', $message), false);
+
         $this->actingAs($intruder)
             ->get(route('chat.attachment', $message))
             ->assertForbidden();
