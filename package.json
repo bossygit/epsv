@@ -26,6 +26,7 @@
         "@docx-editor.dev/core": "^2.31.0",
         "@docx-editor.dev/react": "^2.31.0",
         "@fortune-sheet/react": "^1.0.4",
+        "pdfjs-dist": "^6.4.299",
         "react": "^19.3.1",
         "react-dom": "^19.3.1"
     }

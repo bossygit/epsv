@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/docx-editor.jsx',
                 'resources/js/xlsx-editor.jsx',
+                'resources/js/pdf-viewer.jsx',
             ],
             refresh: true,
         }),

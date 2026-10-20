@@ -74,6 +74,9 @@ n'est joué.
 - **Pièces jointes** : PDF, images (JPG/PNG/WebP), Word et Excel, 10 Mo maximum.
   Elles sont stockées sur le disque **privé** (`storage/app/private/chat/…`) et
   servies uniquement aux participants via une route authentifiée.
+- **Visionneuse PDF** : un fichier `.pdf` affiche un bouton **Voir** qui ouvre
+  la visionneuse intégrée, avec défilement des pages, zoom et téléchargement,
+  sans quitter EPSV.
 - **Édition Word et Excel** : un fichier `.docx` ou `.xlsx` affiche un bouton
   **Modifier** qui ouvre l'éditeur intégré, sans quitter EPSV. L'enregistrement
   ajoute une nouvelle version dans la conversation ; l'original n'est jamais
@@ -109,7 +112,8 @@ peut exister entre deux personnes, quel que soit l'initiateur.
 ## Édition des documents Word et Excel
 
 - Seuls les fichiers **`.docx`** et **`.xlsx`** sont éditables. Les anciens
-  `.doc`/`.xls`, les PDF, les images et les fichiers CSV restent en
+  `.doc`/`.xls`, les PDF, les images et les fichiers CSV ne sont pas modifiables
+  dans EPSV ; les PDF s'ouvrent dans la visionneuse et les autres restent en
   téléchargement.
 - L'éditeur s'ouvre sur une page dédiée d'EPSV
   (`GET /chat/messages/{id}/document`) et charge le fichier par la route
@@ -129,6 +133,22 @@ peut exister entre deux personnes, quel que soit l'initiateur.
   navigateur : `@docx-editor.dev/react` (Apache 2.0) pour Word, et
   `@fortune-sheet/react` + `@corbe30/fortune-excel` (MIT) pour Excel. Aucun
   document n'est envoyé à un tiers.
+
+## Visionneuse PDF
+
+- Un fichier `.pdf` de la conversation affiche **Voir** à côté de
+  **Télécharger**. Le bouton ouvre
+  `GET /chat/messages/{id}/pdf`, une page dédiée d'EPSV.
+- Le PDF est chargé par la route authentifiée de la pièce jointe, puis rendu
+  dans le navigateur avec **PDF.js** (Apache 2.0). Aucun fichier n'est envoyé à
+  un service externe et aucun plugin n'est nécessaire.
+- La visionneuse affiche toutes les pages en défilement continu, avec rendu
+  paresseux des pages hors écran, zoom avant/arrière, ajustement à la largeur
+  et téléchargement. Le retour ramène à la conversation.
+- Elle ne permet ni annotation, ni signature, ni modification : pour cela, il
+  faut télécharger le PDF puis utiliser un outil dédié.
+- Un PDF protégé par mot de passe ou corrompu affiche un message d'erreur et
+  reste téléchargeable.
 
 ## Limites connues de la V1
 

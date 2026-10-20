@@ -43,6 +43,17 @@ class Message extends Model
         return filled($this->attachment_path);
     }
 
+    /** Un PDF, affiché dans la visionneuse intégrée. */
+    public function isPdf(): bool
+    {
+        if (! $this->hasAttachment()) {
+            return false;
+        }
+
+        return strtolower(pathinfo($this->attachment_name ?? '', PATHINFO_EXTENSION)) === 'pdf'
+            || strtolower((string) $this->attachment_mime) === 'application/pdf';
+    }
+
     /** Un document Word récent, ouvert dans l'éditeur intégré. */
     public function isEditableDocx(): bool
     {

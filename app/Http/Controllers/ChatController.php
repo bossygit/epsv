@@ -334,6 +334,22 @@ class ChatController extends Controller
         );
     }
 
+    /** Affiche un PDF de la conversation dans la visionneuse intégrée. */
+    public function viewPdf(Request $request, Message $message)
+    {
+        $this->authorizeParticipant($message->conversation, $request->user());
+
+        abort_unless(
+            $message->isPdf() && Storage::disk('local')->exists($message->attachment_path),
+            404
+        );
+
+        return view('chat.pdf-view', [
+            'message' => $message,
+            'conversation' => $message->conversation,
+        ]);
+    }
+
     /** Ouvre un document Word ou Excel de la conversation dans l'éditeur intégré. */
     public function editDocument(Request $request, Message $message)
     {
