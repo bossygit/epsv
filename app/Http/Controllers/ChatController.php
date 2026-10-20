@@ -25,7 +25,7 @@ class ChatController extends Controller
 
     private const MAX_ATTACHMENT_KB = 10240;
 
-    private const MAX_EDITED_DOCX_KB = 20480;
+    private const MAX_EDITED_OFFICE_KB = 20480;
 
     public function index(Request $request)
     {
@@ -334,13 +334,13 @@ class ChatController extends Controller
         );
     }
 
-    /** Ouvre un .docx de la conversation dans l'éditeur intégré. */
+    /** Ouvre un document Word ou Excel de la conversation dans l'éditeur intégré. */
     public function editDocument(Request $request, Message $message)
     {
         $this->authorizeParticipant($message->conversation, $request->user());
 
         abort_unless(
-            $message->isEditableDocx() && Storage::disk('local')->exists($message->attachment_path),
+            $message->isEditableOffice() && Storage::disk('local')->exists($message->attachment_path),
             404
         );
 
@@ -357,8 +357,10 @@ class ChatController extends Controller
 
         $this->authorizeParticipant($message->conversation, $user);
 
+        $extension = $message->editableOfficeType();
+
         abort_unless(
-            $message->isEditableDocx() && Storage::disk('local')->exists($message->attachment_path),
+            $extension !== null && Storage::disk('local')->exists($message->attachment_path),
             404
         );
 
@@ -366,14 +368,14 @@ class ChatController extends Controller
             'document' => [
                 'required',
                 'file',
-                'max:'.self::MAX_EDITED_DOCX_KB,
-                'extensions:docx',
+                'max:'.self::MAX_EDITED_OFFICE_KB,
+                'extensions:'.$extension,
             ],
         ]);
 
         $file = $request->file('document');
 
-        $this->assertValidDocx($file->getRealPath());
+        $this->assertValidOfficeFile($file->getRealPath(), $extension);
 
         $conversation = $message->conversation;
 
@@ -408,13 +410,15 @@ class ChatController extends Controller
             ->with('success', 'Document modifié enregistré dans la conversation.');
     }
 
-    /** Vérifie qu'un fichier est réellement un paquet DOCX (et non un ZIP quelconque). */
-    private function assertValidDocx(?string $path): void
+    /** Vérifie qu'un fichier est réellement un paquet DOCX ou XLSX. */
+    private function assertValidOfficeFile(?string $path, string $extension): void
     {
         $zip = new \ZipArchive;
 
         $opened = $path !== null && $zip->open($path) === true;
-        $valid = $opened && $zip->locateName('word/document.xml') !== false;
+
+        $requiredPart = $extension === 'xlsx' ? 'xl/workbook.xml' : 'word/document.xml';
+        $valid = $opened && $zip->locateName($requiredPart) !== false;
 
         if ($opened) {
             $zip->close();
@@ -422,7 +426,9 @@ class ChatController extends Controller
 
         if (! $valid) {
             throw ValidationException::withMessages([
-                'document' => 'Le fichier envoyé n’est pas un document Word .docx valide.',
+                'document' => $extension === 'xlsx'
+                    ? 'Le fichier envoyé n’est pas un classeur Excel .xlsx valide.'
+                    : 'Le fichier envoyé n’est pas un document Word .docx valide.',
             ]);
         }
     }

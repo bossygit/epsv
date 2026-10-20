@@ -104,6 +104,36 @@ XML);
         );
     }
 
+    /** Fabrique un classeur XLSX minimal mais valide pour les tests. */
+    private function xlsxUpload(string $name = 'classeur.xlsx'): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'epsv-xlsx-');
+
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::OVERWRITE);
+        $zip->addFromString('xl/workbook.xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets><sheet name="Feuil1" sheetId="1" r:id="rId1"/></sheets>
+</workbook>
+XML);
+        $zip->addFromString('xl/worksheets/sheet1.xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Classeur de test</t></is></c></row></sheetData>
+</worksheet>
+XML);
+        $zip->close();
+
+        return new UploadedFile(
+            $path,
+            $name,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            null,
+            true
+        );
+    }
+
     public function test_invite_redirige_vers_la_connexion(): void
     {
         $this->get(route('chat.index'))->assertRedirect('/login');
@@ -359,7 +389,7 @@ XML);
         $this->assertSame($before, Message::count());
     }
 
-    public function test_seuls_les_docx_ont_un_editeur(): void
+    public function test_pdf_na_pas_dediteur_integre(): void
     {
         Storage::fake('local');
 
@@ -437,6 +467,69 @@ XML);
         $this->actingAs($recipient)->post(
             route('chat.documents.save', $message),
             ['document' => UploadedFile::fake()->createWithContent('faux.docx', 'pas un zip')],
+            ['Accept' => 'application/json']
+        )->assertStatus(422)->assertJsonValidationErrors('document');
+    }
+
+    public function test_classeur_excel_ouvrable_et_enregistre_dans_le_chat(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Voici le suivi',
+            'attachment' => $this->xlsxUpload('suivi.xlsx'),
+        ])->assertOk();
+
+        $original = Message::firstOrFail();
+
+        $this->assertTrue($original->isEditableXlsx());
+        $this->assertTrue($original->isEditableOffice());
+
+        $this->actingAs($recipient)
+            ->get(route('chat.documents.edit', $original))
+            ->assertOk()
+            ->assertSee('suivi.xlsx')
+            ->assertSee('xlsx-editor-app');
+
+        $before = Message::count();
+
+        $this->actingAs($recipient)->post(
+            route('chat.documents.save', $original),
+            ['document' => $this->xlsxUpload('suivi.xlsx')],
+            ['Accept' => 'application/json']
+        )->assertOk()->assertJsonPath('ok', true);
+
+        $this->assertSame($before + 1, Message::count());
+
+        $edited = Message::latest('id')->firstOrFail();
+
+        $this->assertSame('suivi.xlsx', $edited->attachment_name);
+        $this->assertStringContainsString('Document modifié', $edited->body);
+        Storage::disk('local')->assertExists($edited->attachment_path);
+    }
+
+    public function test_enregistrement_refuse_un_faux_xlsx(): void
+    {
+        Storage::fake('local');
+
+        $sender = $this->teacher();
+        $recipient = $this->direction();
+        $conversation = $this->directConversation($sender, $recipient);
+
+        $this->actingAs($sender)->postJson(route('chat.messages.store', $conversation), [
+            'body' => 'Classeur',
+            'attachment' => $this->xlsxUpload('suivi.xlsx'),
+        ])->assertOk();
+
+        $message = Message::firstOrFail();
+
+        $this->actingAs($recipient)->post(
+            route('chat.documents.save', $message),
+            ['document' => UploadedFile::fake()->createWithContent('faux.xlsx', 'pas un zip')],
             ['Accept' => 'application/json']
         )->assertStatus(422)->assertJsonValidationErrors('document');
     }
