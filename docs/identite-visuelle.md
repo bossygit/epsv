@@ -32,7 +32,8 @@ restent intactes.
 ## Règles de composition
 
 1. **Filet plutôt qu'ombre.** Les surfaces sont séparées par des bordures
-   `border-line` ; le rayon est de 2 px. Pas de carte flottante.
+   `border-line` ; le rayon est de 16 px pour les cartes et panneaux, 10 px
+   pour les contrôles (champs, boutons, pastilles). Pas de carte flottante.
 2. **Un seul accent.** L'or signale l'action ou l'état actif ; jamais de
    couleur décorative.
 3. **Bandeau d'indicateurs unique.** Les KPI se lisent comme une ligne de

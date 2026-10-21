@@ -33,7 +33,7 @@
         @endif
     </div>
 @else
-    <div {{ $attributes->merge(['class' => 'rounded-sm border border-line bg-paper p-5']) }}>
+    <div {{ $attributes->merge(['class' => 'rounded-lg border border-line bg-paper p-5']) }}>
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
                 <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{{ $label }}</p>

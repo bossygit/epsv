@@ -87,13 +87,13 @@ export default {
 
             borderRadius: {
                 none: '0',
-                sm: '1px',
-                DEFAULT: '2px',
-                md: '2px',
-                lg: '3px',
-                xl: '4px',
-                '2xl': '5px',
-                '3xl': '6px',
+                sm: '10px',
+                DEFAULT: '10px',
+                md: '10px',
+                lg: '16px',
+                xl: '18px',
+                '2xl': '20px',
+                '3xl': '26px',
                 full: '9999px',
             },
 

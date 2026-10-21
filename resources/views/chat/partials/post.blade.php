@@ -12,7 +12,7 @@
 @endphp
 
 <article id="post-{{ $message->id }}"
-         class="rounded-sm border border-line bg-paper"
+         class="rounded-lg border border-line bg-paper"
          x-data="{
              liked: {{ $liked ? 'true' : 'false' }},
              count: {{ $likeCount }},

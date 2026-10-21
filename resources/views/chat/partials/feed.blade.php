@@ -22,7 +22,7 @@
     <div class="mx-auto w-full max-w-[680px] space-y-3 px-3 py-4 sm:px-4 sm:py-5">
 
         {{-- Nouvelle publication --}}
-        <div class="rounded-sm border border-line bg-paper p-3 sm:p-4">
+        <div class="rounded-lg border border-line bg-paper p-3 sm:p-4">
             <form method="POST" action="{{ route('chat.messages.store', $conversation) }}" enctype="multipart/form-data">
                 @csrf
 
@@ -70,7 +70,7 @@
         @forelse ($messages as $message)
             @include('chat.partials.post', ['message' => $message, 'currentUser' => $currentUser])
         @empty
-            <div class="rounded-sm border border-line bg-paper px-6 py-12 text-center">
+            <div class="rounded-lg border border-line bg-paper px-6 py-12 text-center">
                 <p class="font-serif text-[16px] text-ink">Le fil est encore vide</p>
                 <p class="mt-1 text-[12px] text-muted">Publiez la première information de l'école.</p>
             </div>
