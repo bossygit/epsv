@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Message extends Model
@@ -36,6 +37,31 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Mentions « J'aime » (fil d'actualité). */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
+    /** Commentaires (fil d'actualité). */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(MessageComment::class);
+    }
+
+    /**
+     * L'utilisateur a-t-il aimé cette publication ?
+     * Suppose la relation `reactions` déjà chargée (fil d'actualité).
+     */
+    public function isLikedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->reactions->contains('user_id', $user->getKey());
     }
 
     public function hasAttachment(): bool

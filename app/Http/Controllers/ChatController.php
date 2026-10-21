@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageComment;
+use App\Models\MessageReaction;
 use App\Models\User;
 use App\Services\ChatPushNotifier;
 use Illuminate\Http\JsonResponse;
@@ -54,17 +56,39 @@ class ChatController extends Controller
         }
 
         $messages = collect();
+        $feedMode = false;
+        $postLimit = min(100, max(10, (int) $request->query('posts', 20)));
+        $hasMorePosts = false;
 
         if ($selected) {
             $selected->markReadBy($user);
 
-            $messages = $selected->messages()
-                ->with('user:id,name,job_title')
-                ->latest('id')
-                ->limit(60)
-                ->get()
-                ->reverse()
-                ->values();
+            $feedMode = $selected->type === Conversation::TYPE_CHANNEL;
+
+            if ($feedMode) {
+                // Fil d'actualité : publications les plus récentes d'abord,
+                // avec leurs mentions « J'aime » et leurs commentaires.
+                $posts = $selected->messages()
+                    ->with([
+                        'user:id,name,job_title',
+                        'reactions:id,message_id,user_id',
+                        'comments' => fn ($query) => $query->with('user:id,name,job_title')->oldest('id'),
+                    ])
+                    ->latest('id')
+                    ->limit($postLimit + 1)
+                    ->get();
+
+                $hasMorePosts = $posts->count() > $postLimit;
+                $messages = $posts->take($postLimit)->values();
+            } else {
+                $messages = $selected->messages()
+                    ->with('user:id,name,job_title')
+                    ->latest('id')
+                    ->limit(60)
+                    ->get()
+                    ->reverse()
+                    ->values();
+            }
         }
 
         $unread = $conversations->mapWithKeys(
@@ -96,6 +120,9 @@ class ChatController extends Controller
             'colleagues' => $this->colleagues($user),
             'canManageGroup' => $canManageGroup,
             'groupCandidates' => $groupCandidates,
+            'feedMode' => $feedMode,
+            'postLimit' => $postLimit,
+            'hasMorePosts' => $hasMorePosts,
         ]);
     }
 
@@ -318,6 +345,67 @@ class ChatController extends Controller
         ]);
     }
 
+    /**
+     * Ajoute ou retire la mention « J'aime » de l'utilisateur sur une
+     * publication du fil de l'école. Réponse JSON pour la mise à jour
+     * immédiate du compteur, redirection sinon.
+     */
+    public function toggleLike(Request $request, Message $message)
+    {
+        $user = $request->user();
+
+        $this->authorizeParticipant($message->conversation, $user);
+
+        $reaction = MessageReaction::query()
+            ->where('message_id', $message->getKey())
+            ->where('user_id', $user->getKey())
+            ->first();
+
+        if ($reaction) {
+            $reaction->delete();
+            $liked = false;
+        } else {
+            MessageReaction::create([
+                'message_id' => $message->getKey(),
+                'user_id' => $user->getKey(),
+            ]);
+            $liked = true;
+        }
+
+        $count = MessageReaction::query()->where('message_id', $message->getKey())->count();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'liked' => $liked,
+                'count' => $count,
+            ]);
+        }
+
+        return redirect()->to(route('chat.index', ['c' => $message->conversation_id]).'#post-'.$message->getKey());
+    }
+
+    /** Ajoute un commentaire sous une publication du fil de l'école. */
+    public function storeComment(Request $request, Message $message): RedirectResponse
+    {
+        $user = $request->user();
+
+        $this->authorizeParticipant($message->conversation, $user);
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'max:2000'],
+        ]);
+
+        MessageComment::create([
+            'message_id' => $message->getKey(),
+            'user_id' => $user->getKey(),
+            'body' => $data['body'],
+        ]);
+
+        return redirect()->to(
+            route('chat.index', ['c' => $message->conversation_id]).'#post-'.$message->getKey()
+        );
+    }
+
     /** Télécharge une pièce jointe (réservé aux participants). */
     public function downloadAttachment(Request $request, Message $message)
     {
@@ -495,6 +583,16 @@ class ChatController extends Controller
 
     private function authorizeParticipant(Conversation $conversation, User $user): void
     {
+        // Le canal « Toute l'école » est ouvert à tout compte actif : on y
+        // rattache le membre à la volée, sans exiger un passage préalable
+        // par la page de la messagerie (cas d'un « J'aime » ou d'un
+        // commentaire envoyé depuis le fil).
+        if ($conversation->type === Conversation::TYPE_CHANNEL) {
+            $this->attachIfMissing($conversation, (int) $user->getKey());
+
+            return;
+        }
+
         abort_unless($conversation->hasParticipant($user), 403);
     }
 

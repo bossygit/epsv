@@ -51,6 +51,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('chat/messages/{message}/document', [ChatController::class, 'editDocument'])->name('chat.documents.edit');
     Route::post('chat/messages/{message}/document', [ChatController::class, 'saveDocument'])->name('chat.documents.save');
     Route::delete('chat/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+    Route::post('chat/messages/{message}/like', [ChatController::class, 'toggleLike'])->name('chat.messages.like');
+    Route::post('chat/messages/{message}/comments', [ChatController::class, 'storeComment'])->name('chat.messages.comments.store');
 
     /*
     |----------------------------------------------------------------------

@@ -62,7 +62,8 @@
     <div
         x-data="chatApp($el)"
         data-conversation-id="{{ $selected?->id }}"
-        data-last-id="{{ $messages->last()?->id ?? 0 }}"
+        data-last-id="{{ $feedMode ? ($messages->first()?->id ?? 0) : ($messages->last()?->id ?? 0) }}"
+        data-feed-mode="{{ $feedMode ? '1' : '0' }}"
         data-poll-url="{{ $selected ? route('chat.messages.poll', $selected) : '' }}"
         data-send-url="{{ $selected ? route('chat.messages.store', $selected) : '' }}"
         data-mobile-thread="{{ $mobileThread ? '1' : '0' }}"
@@ -130,6 +131,9 @@
             {{-- Fil de discussion --}}
             <section class="min-w-0 flex-1 flex-col" :class="mobileThread ? 'flex' : 'hidden md:flex'">
                 @if ($selected)
+                    @if ($selected->type === \App\Models\Conversation::TYPE_CHANNEL)
+                        @include('chat.partials.feed', ['conversation' => $selected])
+                    @else
                     <div class="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 px-3 sm:px-4">
                         <a href="{{ route('chat.index', ['list' => 1]) }}"
                            class="-ml-1 rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 md:hidden"
@@ -221,6 +225,7 @@
 
                         <p x-show="error" x-text="error" class="mt-1 text-xs text-rose-600"></p>
                     </form>
+                    @endif
                 @else
                     <div class="flex flex-1 items-center justify-center p-8 text-center">
                         <div>
@@ -546,6 +551,7 @@
                 return {
                     conversationId: dataset.conversationId ? parseInt(dataset.conversationId, 10) : null,
                     lastId: parseInt(dataset.lastId || '0', 10),
+                    feedMode: dataset.feedMode === '1',
                     pollUrl: dataset.pollUrl || null,
                     sendUrl: dataset.sendUrl || null,
                     mobileThread: dataset.mobileThread === '1',
@@ -557,6 +563,12 @@
                     onVisibilityChange: null,
 
                     init() {
+                        // Mode fil d'actualité : pas de défilement automatique ni
+                        // d'insertion de bulles, le fil gère ses propres nouveautés.
+                        if (this.feedMode) {
+                            return;
+                        }
+
                         this.scrollToBottom(false);
 
                         if (!this.conversationId) {
