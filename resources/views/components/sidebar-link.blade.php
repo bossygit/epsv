@@ -18,8 +18,10 @@
 @endphp
 
 <a href="{{ $href }}"
-   {{ $attributes->merge(['class' => 'group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium transition ' . ($active ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white')]) }}>
-    <svg class="h-5 w-5 shrink-0 {{ $active ? 'text-white' : 'text-slate-400 group-hover:text-slate-200' }}"
+   {{ $attributes->merge(['class' => 'group -ml-2 flex items-center gap-2 border-l-2 py-1.5 pl-2 pr-2 text-[12px] leading-tight transition ' . ($active
+        ? 'border-gold bg-gold/10 font-medium text-white'
+        : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white')]) }}>
+    <svg class="h-[15px] w-[15px] shrink-0 {{ $active ? 'text-gold' : 'text-slate-400 group-hover:text-slate-200' }}"
          fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $path }}" />
     </svg>
@@ -27,7 +29,7 @@
 
     @if ($badge !== null)
         <span @if ($badgeId) id="{{ $badgeId }}" @endif
-              class="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-1.5 py-0.5 text-[10px] font-semibold text-white {{ (int) $badge > 0 ? '' : 'hidden' }}">
+              class="ml-auto inline-flex min-w-[1.1rem] items-center justify-center rounded-sm bg-gold px-1 py-px text-[9.5px] font-bold text-navy-900 {{ (int) $badge > 0 ? '' : 'hidden' }}">
             {{ (int) $badge > 99 ? '99+' : (int) $badge }}
         </span>
     @endif

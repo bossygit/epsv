@@ -4,7 +4,7 @@
     name="{{ $name }}"
     id="{{ $attributes->get('id', $name) }}"
     @if ($required) required @endif
-    {{ $attributes->except(['id'])->merge(['class' => 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm']) }}
+    {{ $attributes->except(['id'])->merge(['class' => 'block w-full rounded-sm border-line bg-paper text-[13px] text-ink focus:border-navy focus:ring-1 focus:ring-navy/20']) }}
 >
     @if ($placeholder !== null)
         <option value="">{{ $placeholder }}</option>

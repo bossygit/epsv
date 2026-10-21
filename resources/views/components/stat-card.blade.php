@@ -1,31 +1,54 @@
-@props(['label', 'value', 'hint' => null, 'tone' => 'indigo', 'icon' => null])
+@props(['label', 'value', 'hint' => null, 'tone' => 'indigo', 'icon' => null, 'variant' => 'card'])
 
 @php
-    $tones = [
-        'indigo' => 'bg-indigo-50 text-indigo-600',
-        'emerald' => 'bg-emerald-50 text-emerald-600',
-        'amber' => 'bg-amber-50 text-amber-600',
-        'rose' => 'bg-rose-50 text-rose-600',
-        'slate' => 'bg-slate-100 text-slate-600',
+    $dots = [
+        'indigo' => 'bg-navy',
+        'emerald' => 'bg-emerald-600',
+        'amber' => 'bg-amber-600',
+        'rose' => 'bg-rose-600',
+        'slate' => 'bg-slate-400',
     ];
-    $toneClass = $tones[$tone] ?? $tones['indigo'];
+    $dotClass = $dots[$tone] ?? $dots['indigo'];
+
+    $valueTones = [
+        'indigo' => 'text-ink',
+        'emerald' => 'text-ink',
+        'amber' => 'text-amber-700',
+        'rose' => 'text-rose-700',
+        'slate' => 'text-ink',
+    ];
+    $valueClass = $valueTones[$tone] ?? $valueTones['indigo'];
 @endphp
 
-<div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
-    <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-            <p class="text-sm font-medium text-gray-500">{{ $label }}</p>
-            <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900">{{ $value }}</p>
-            @if ($hint)
-                <p class="mt-1 text-xs text-gray-500">{{ $hint }}</p>
-            @endif
-        </div>
-        @if ($icon)
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $toneClass }}">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
-                </svg>
-            </div>
+@if ($variant === 'strip')
+    {{-- Cellule du bandeau d'indicateurs (tableau de bord) --}}
+    <div {{ $attributes->merge(['class' => 'flex flex-col gap-0.5 bg-paper px-4 py-3 sm:px-5']) }}>
+        <p class="flex items-center gap-1.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted">
+            <span class="inline-block h-1 w-1 rounded-full {{ $dotClass }}"></span>
+            {{ $label }}
+        </p>
+        <p class="num text-[23px] font-semibold leading-tight tracking-[-0.02em] {{ $valueClass }}">{{ $value }}</p>
+        @if ($hint)
+            <p class="text-[10.5px] text-muted">{{ $hint }}</p>
         @endif
     </div>
-</div>
+@else
+    <div {{ $attributes->merge(['class' => 'rounded-sm border border-line bg-paper p-5']) }}>
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{{ $label }}</p>
+                <p class="num mt-1.5 font-serif text-[30px] font-normal leading-none tracking-[-0.02em] {{ $valueClass }}">{{ $value }}</p>
+                @if ($hint)
+                    <p class="mt-1.5 text-[11.5px] text-muted">{{ $hint }}</p>
+                @endif
+            </div>
+            @if ($icon)
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-line bg-ivory text-navy">
+                    <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
+                    </svg>
+                </div>
+            @endif
+        </div>
+    </div>
+@endif

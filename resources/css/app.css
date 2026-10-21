@@ -5,3 +5,44 @@
 [x-cloak] {
     display: none !important;
 }
+
+@layer base {
+    body {
+        @apply bg-ivory text-ink;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Hiérarchie éditoriale : les titres portent la voix de l'établissement */
+    h1,
+    h2,
+    h3 {
+        @apply font-serif;
+    }
+
+    ::selection {
+        background: #e8dcc2;
+        color: #14232e;
+    }
+
+    /* Chiffres alignés dans les tableaux */
+    table {
+        font-variant-numeric: tabular-nums;
+    }
+
+    :focus-visible {
+        outline: 2px solid #b08a3e;
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .num {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Filet doré sous les liens d'action */
+    .link-rule {
+        @apply border-b border-gold pb-0.5 font-semibold text-navy hover:text-gold;
+    }
+}

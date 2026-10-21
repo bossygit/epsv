@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPSV — Vitrine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2438; --ink:#15252F; --muted:#62717C; --line:#E6E0D4; --ivory:#FAF7F1;
+    --paper:#fff; --gold:#B08A3E; --green:#2F6B4F; --amber:#A8621B; --rose:#9B3B33;
+    --serif:"Spectral",Georgia,serif; --sans:"Inter",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* Barre supérieure */
+  .topbar{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+  .topbar .in{max-width:1240px;margin:0 auto;padding:0 32px;height:74px;display:flex;align-items:center;gap:28px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .crest{width:40px;height:40px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-family:var(--serif);font-size:16px;font-weight:500}
+  .brand b{font-family:var(--serif);font-size:15px;font-weight:500;display:block;line-height:1.2;letter-spacing:.01em}
+  .brand span{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  nav{display:flex;gap:2px;margin-left:14px}
+  nav a{padding:8px 11px;font-size:12.5px;color:#40525E;border-radius:2px;position:relative}
+  nav a:hover{color:var(--navy);background:#F7F3EA}
+  nav a.on{color:var(--navy);font-weight:600}
+  nav a.on:after{content:"";position:absolute;left:11px;right:11px;bottom:-2px;height:1px;background:var(--gold)}
+  .topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .icon-btn{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:#4A5B67;position:relative}
+  .icon-btn:hover{border-color:var(--navy);color:var(--navy)}
+  .icon-btn .bdg{position:absolute;top:-3px;right:-3px;background:var(--gold);color:#16283A;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:50%;display:grid;place-items:center}
+  .who{display:flex;align-items:center;gap:9px;padding-left:14px;border-left:1px solid var(--line)}
+  .who .av{width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:11px;letter-spacing:.02em}
+  .who b{display:block;font-size:12.5px;font-weight:600;line-height:1.2}
+  .who span{font-size:10px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+
+  .page{max-width:1240px;margin:0 auto;padding:38px 32px 70px}
+
+  /* Masthead éditorial */
+  .mast{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:end;padding-bottom:26px;border-bottom:1px solid var(--line)}
+  .mast .eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  .mast h1{font-family:var(--serif);font-weight:400;font-size:46px;line-height:1.06;letter-spacing:-.02em;margin:12px 0 10px}
+  .mast h1 em{font-style:italic;color:var(--navy)}
+  .mast p{color:var(--muted);font-size:13.5px;max-width:44ch}
+  .period{display:flex;align-items:center;gap:0;align-self:start;justify-self:end;border:1px solid var(--line);background:#fff}
+  .period button{background:none;border:0;padding:9px 14px;font-family:var(--sans);font-size:11.5px;color:var(--muted);cursor:pointer;border-right:1px solid var(--line)}
+  .period button:last-child{border-right:0}
+  .period button.on{background:var(--navy);color:#fff}
+
+  /* Hero stat */
+  .hero{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:18px;margin-top:28px}
+  .card{background:var(--paper);border:1px solid var(--line);padding:24px 26px;position:relative;overflow:hidden}
+  .card .lab{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .card .val{font-family:var(--serif);font-size:44px;font-weight:400;line-height:1;margin-top:12px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .card .val small{font-family:var(--sans);font-size:15px;color:var(--muted);margin-left:4px;letter-spacing:0}
+  .card .foot{font-size:12px;color:var(--muted);margin-top:12px;display:flex;align-items:center;gap:6px}
+  .card .foot .up{color:var(--green);font-weight:600}
+  .card.hero-card{background:linear-gradient(160deg,#0F2438 0%,#16304A 100%);color:#fff;border-color:#0F2438}
+  .card.hero-card .lab{color:#A9BDCC}
+  .card.hero-card .foot{color:#A9BDCC}
+  .card.hero-card:after{content:"";position:absolute;right:-40px;bottom:-60px;width:200px;height:200px;border:1px solid rgba(176,138,62,.35);border-radius:50%}
+  .card.hero-card:before{content:"";position:absolute;right:-6px;bottom:-26px;width:130px;height:130px;border:1px solid rgba(176,138,62,.2);border-radius:50%}
+  .card .spark{display:flex;align-items:flex-end;gap:3px;height:26px;margin-top:14px}
+  .card .spark i{width:6px;background:#E7E1D4;display:block}
+  .card .spark i.on{background:var(--navy)}
+  .card.warn .val{color:var(--amber)}
+  .card.bad .val{color:var(--rose)}
+
+  /* Grille contenu */
+  .grid{display:grid;grid-template-columns:1.62fr 1fr;gap:18px;margin-top:18px}
+  .panel{background:#fff;border:1px solid var(--line)}
+  .panel .head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .panel .head h2{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-.005em}
+  .panel .head p{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .panel .head a{font-size:11px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--gold)}
+  table{width:100%;border-collapse:collapse}
+  thead th{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:11px 24px;background:#FCFAF5;border-bottom:1px solid var(--line)}
+  thead th.r{text-align:right}
+  tbody td{padding:13px 24px;border-bottom:1px solid #F2EEE6;font-size:13px}
+  tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FDFBF6}
+  .cname{font-family:var(--serif);font-size:15px;font-weight:500}
+  .lvl{font-size:10.5px;color:var(--muted);margin-left:7px;letter-spacing:.03em}
+  .avg{font-weight:600}
+  .rate{display:inline-flex;align-items:center;gap:9px;justify-content:flex-end}
+  .rate .bar{width:64px;height:2px;background:#EDE8DD;position:relative}
+  .rate .bar i{position:absolute;inset:0 auto 0 0;background:var(--navy)}
+  .rate.low .bar i{background:var(--amber)}
+  .rate.low{color:var(--amber)}
+
+  /* Alertes */
+  .alert{display:flex;gap:14px;padding:15px 24px;border-bottom:1px solid #F2EEE6;align-items:flex-start}
+  .alert:last-child{border-bottom:0}
+  .alert:hover{background:#FDFBF6}
+  .alert .ico{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:0 0 26px;font-size:11px;font-weight:700;font-family:var(--serif)}
+  .alert .ico.a{background:#FBF3E4;color:var(--amber);border:1px solid #EEDCBE}
+  .alert .ico.r{background:#FBF0EE;color:var(--rose);border:1px solid #E8CFCB}
+  .alert .t{font-size:13px;font-weight:500;line-height:1.35}
+  .alert .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .alert button{border:0;background:none;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--gold);padding:0;margin-top:6px;cursor:pointer}
+  .alert button:hover{color:var(--gold)}
+
+  /* Bas de page */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .levels{padding:8px 24px 16px}
+  .levels .row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #F5F1E9;font-size:13px}
+  .levels .row:last-child{border-bottom:0}
+  .levels .row span:first-child{width:96px;color:#43545F}
+  .levels .row .track{flex:1;height:7px;background:#F1ECE2;position:relative}
+  .levels .row .track i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#16304A,#2A4E70)}
+  .levels .row b{width:30px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .rc{padding:0 24px 16px}
+  .rc .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #F5F1E9;font-size:12.5px}
+  .rc .row:last-child{border-bottom:0}
+  .rc .row .nm{flex:1;font-weight:500}
+  .rc .row .st{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid}
+  .rc .row .pub{color:var(--green);border-color:#C6DACD;background:#F3F8F5}
+  .rc .row .dft{color:#8A7A5C;border-color:#E2D9C6;background:#FBF7EE}
+  .rc .row .n{font-variant-numeric:tabular-nums;color:var(--muted)}
+
+  .signature{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#98A5AF}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,10px);background:var(--navy);color:#fff;padding:12px 20px;font-size:12.5px;opacity:0;transition:.25s;pointer-events:none;border-top:2px solid var(--gold)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media(max-width:1020px){
+    .mast{grid-template-columns:1fr;gap:18px}.period{justify-self:start}
+    .hero{grid-template-columns:1fr 1fr}.hero .hero-card{grid-column:1/-1}
+    .grid,.duo{grid-template-columns:1fr}
+    nav{display:none}.mast h1{font-size:36px}
+  }
+  @media(max-width:640px){
+    .topbar .in{height:auto;flex-wrap:wrap;padding:12px 16px;gap:12px}
+    .brand b{font-size:13px}
+    .page{padding:22px 16px 50px}
+    .mast h1{font-size:29px}.mast p{font-size:12.5px}
+    .period button{padding:8px 9px;font-size:10.5px}
+    .hero{grid-template-columns:1fr}
+    .card{padding:18px 18px}.card .val{font-size:32px}
+    .panel .head{padding:14px 16px}
+    thead th,tbody td{padding-left:16px;padding-right:16px}
+    thead th:nth-child(3),tbody td:nth-child(3){display:none}
+    .levels,.rc{padding-left:16px;padding-right:16px}
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="in">
+    <div class="brand">
+      <div class="crest">E</div>
+      <div><b>École Panafricaine<br>Séguynaud de Vinci</b><span>Brazzaville · EPSV</span></div>
+    </div>
+    <nav>
+      <a href="#" class="on">Tableau de bord</a>
+      <a href="#">Scolarité</a>
+      <a href="#">Communication</a>
+      <a href="#">Structure</a>
+      <a href="#">Administration</a>
+    </nav>
+    <div class="right">
+      <a href="#" class="icon-btn" title="Messagerie">✉<span class="bdg">2</span></a>
+      <div class="who">
+        <div class="av">PS</div>
+        <div><b>Paul Samba</b><span>Surveillant</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <header class="mast">
+    <div>
+      <div class="eyebrow">Année scolaire 2026 – 2027</div>
+      <h1>Tableau de bord<br><em>du premier trimestre</em></h1>
+      <p>La situation de l'établissement en un coup d'œil : effectifs, assiduité, résultats et points à traiter avant la validation.</p>
+    </div>
+    <div class="period" id="period">
+      <button class="on" data-p="1">1er trimestre</button>
+      <button data-p="2">2e trimestre</button>
+      <button data-p="3">3e trimestre</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="card hero-card">
+      <div class="lab">Taux de présence — 30 derniers jours</div>
+      <div class="val" id="rate">94,1<small>%</small></div>
+      <div class="spark" aria-hidden="true">
+        <i class="on" style="height:40%"></i><i class="on" style="height:55%"></i><i class="on" style="height:48%"></i><i class="on" style="height:70%"></i><i class="on" style="height:62%"></i><i class="on" style="height:80%"></i><i class="on" style="height:74%"></i><i class="on" style="height:92%"></i><i class="on" style="height:86%"></i><i class="on" style="height:100%"></i>
+      </div>
+      <div class="foot">970 pointages · <span class="up">+1,4 pt</span> vs trimestre précédent</div>
+    </div>
+    <div class="card">
+      <div class="lab">Élèves inscrits</div>
+      <div class="val" id="students">97</div>
+      <div class="foot">54 filles · 43 garçons · 12 classes</div>
+    </div>
+    <div class="card warn">
+      <div class="lab">Absences non justifiées</div>
+      <div class="val" id="abs">42</div>
+      <div class="foot">À traiter par la surveillance</div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="head">
+        <div>
+          <h2>Résultats par classe</h2>
+          <p>Moyennes pondérées du 1er trimestre</p>
+        </div>
+        <a href="#">Voir le détail</a>
+      </div>
+      <table>
+        <thead><tr><th>Classe</th><th class="r">Moyenne</th><th class="r">Évalués</th><th class="r">Taux de réussite</th></tr></thead>
+        <tbody>
+          <tr><td><span class="cname">6e A</span><span class="lvl">Sixième</span></td><td class="r avg">12,84</td><td class="r">28 / 31</td><td class="r"><span class="rate"><span class="bar"><i style="width:82%"></i></span>82,1 %</span></td></tr>
+          <tr><td><span class="cname">6e B</span><span class="lvl">Sixième</span></td><td class="r avg">11,96</td><td class="r">27 / 30</td><td class="r"><span class="rate"><span class="bar"><i style="width:74%"></i></span>74,0 %</span></td></tr>
+          <tr><td><span class="cname">5e A</span><span class="lvl">Cinquième</span></td><td class="r avg">13,10</td><td class="r">29 / 31</td><td class="r"><span class="rate"><span class="bar"><i style="width:86%"></i></span>86,2 %</span></td></tr>
+          <tr><td><span class="cname">4e A</span><span class="lvl">Quatrième</span></td><td class="r avg">11,42</td><td class="r">25 / 28</td><td class="r"><span class="rate low"><span class="bar"><i style="width:64%"></i></span>64,0 %</span></td></tr>
+          <tr><td><span class="cname">3e A</span><span class="lvl">Troisième</span></td><td class="r avg">12,05</td><td class="r">26 / 29</td><td class="r"><span class="rate"><span class="bar"><i style="width:72%"></i></span>72,4 %</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="panel">
+      <div class="head">
+        <div>
+          <h2>À traiter</h2>
+          <p>6 points ouverts</p>
+        </div>
+      </div>
+      <div id="alerts">
+        <div class="alert act">
+          <div class="ico a">!</div>
+          <div>
+            <div class="t">Valider le 1er trimestre</div>
+            <div class="s">Soumis par la direction le 12 octobre</div>
+            <button>Valider les résultats →</button>
+          </div>
+        </div>
+        <div class="alert">
+          <div class="ico r">N</div>
+          <div><div class="t">Mathématiques — 3e A</div><div class="s">5 notes non saisies · devoir du 08/10</div></div>
+        </div>
+        <div class="alert">
+          <div class="ico r">N</div>
+          <div><div class="t">Physique — 4e A</div><div class="s">4 notes non saisies · interrogation du 06/10</div></div>
+        </div>
+        <div class="alert">
+          <div class="ico a">A</div>
+          <div><div class="t">Merveille Nkodia</div><div class="s">7 absences sur 30 jours · 6e A</div></div>
+        </div>
+        <div class="alert">
+          <div class="ico a">A</div>
+          <div><div class="t">Grâce Loubaki</div><div class="s">6 absences sur 30 jours · 5e A</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="duo">
+    <section class="panel">
+      <div class="head"><div><h2>Effectifs par niveau</h2><p>Répartition des 97 inscrits</p></div></div>
+      <div class="levels">
+        <div class="row"><span>Sixième</span><div class="track"><i style="width:100%"></i></div><b>58</b></div>
+        <div class="row"><span>Cinquième</span><div class="track"><i style="width:36%"></i></div><b>21</b></div>
+        <div class="row"><span>Quatrième</span><div class="track"><i style="width:21%"></i></div><b>12</b></div>
+        <div class="row"><span>Troisième</span><div class="track"><i style="width:10%"></i></div><b>6</b></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="head"><div><h2>Derniers bulletins</h2><p>Générés cette semaine</p></div><a href="#">Tout voir</a></div>
+      <div class="rc">
+        <div class="row"><span class="nm">Merveille Nkodia</span><span class="n">13,42</span><span class="n">3e</span><span class="st pub">Publié</span></div>
+        <div class="row"><span class="nm">Grâce Loubaki</span><span class="n">12,08</span><span class="n">7e</span><span class="st pub">Publié</span></div>
+        <div class="row"><span class="nm">Josué Massamba</span><span class="n">—</span><span class="n">—</span><span class="st dft">Brouillon</span></div>
+        <div class="row"><span class="nm">Ange Bouiti</span><span class="n">11,76</span><span class="n">12e</span><span class="st pub">Publié</span></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="signature">
+    <span>EPSV · École Panafricaine Séguynaud de Vinci</span>
+    <span>Synchronisé à 10:42</span>
+  </div>
+</div>
+
+<div class="toast" id="toast">Résultats validés — les bulletins sont débloqués</div>
+<script>
+  document.querySelectorAll('#period button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      const d = {1:['94,1','97','42'],2:['91,7','99','58'],3:['96,2','101','27']}[b.dataset.p];
+      document.getElementById('rate').innerHTML = d[0]+'<small>%</small>';
+      document.getElementById('students').textContent = d[1];
+      document.getElementById('abs').textContent = d[2];
+    });
+  });
+  const btn = document.querySelector('.alert.act button');
+  btn && btn.addEventListener('click',()=>{
+    document.querySelector('.alert.act .t').textContent='1er trimestre validé';
+    document.querySelector('.alert.act .s').textContent='Il y a un instant · bulletins débloqués';
+    document.querySelector('.alert.act .ico').textContent='✓';
+    document.querySelector('.alert.act .ico').style.background='#F1F7F3';
+    document.querySelector('.alert.act .ico').style.color='#2F6B4F';
+    document.querySelector('.alert.act button').remove();
+    const t=document.getElementById('toast'); t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2600);
+  });
+</script>
+</body>
+</html>

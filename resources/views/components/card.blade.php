@@ -1,14 +1,14 @@
 @props(['title' => null, 'subtitle' => null, 'padding' => true])
 
-<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200']) }}>
+<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-sm border border-line bg-paper']) }}>
     @if ($title || isset($actions))
-        <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div class="flex flex-col gap-3 border-b border-line px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:px-6 sm:py-3.5">
             <div>
                 @if ($title)
-                    <h3 class="text-base font-semibold text-gray-900">{{ $title }}</h3>
+                    <h3 class="font-serif text-[16.5px] font-medium leading-tight text-ink">{{ $title }}</h3>
                 @endif
                 @if ($subtitle)
-                    <p class="mt-0.5 text-sm text-gray-500">{{ $subtitle }}</p>
+                    <p class="mt-0.5 text-[11.5px] text-muted">{{ $subtitle }}</p>
                 @endif
             </div>
             @isset($actions)
